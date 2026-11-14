@@ -1,0 +1,29 @@
+# Local agent instructions (kept out of version control)
+AGENTS.md
+
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+
+# Node / frontend
+node_modules/
+dist/
+coverage/
+
+# Local data and logs
+*.sqlite3
+*.db
+*.log
+.DS_Store
+Thumbs.db
