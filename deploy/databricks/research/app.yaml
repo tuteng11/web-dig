@@ -1,0 +1,4 @@
+command: ["python", "-m", "news_trace.databricks.apps", "research"]
+health_check:
+  path: /health
+  timeout_seconds: 120

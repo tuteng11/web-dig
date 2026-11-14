@@ -36,6 +36,8 @@ The submitted URL is a **discovery seed**, not necessarily the tree root. The ro
 | [Question_Source_MCP_Agent_Contract.md](Question_Source_MCP_Agent_Contract.md) | Gateway/backend, MCP tools, discovery, source metadata, origin assessment, LLM tool use, persistence, and backend acceptance criteria |
 | [Databricks Free Edition integration plan](docs/DATABRICKS_INTEGRATION_PLAN.md) | Proposed deployment overlay and capability checks; workspace feasibility is unverified |
 
+The Databricks capability spike has separate [deployment instructions](docs/DATABRICKS_DEPLOYMENT.md) and a [results matrix](docs/DATABRICKS_CAPABILITIES.md).
+
 Use **version 2.1 or newer** of both contracts. Earlier versions assumed either a supplied backend, single-page-only analysis, or a tree rooted at the submitted source; those assumptions are superseded. Backend schemas own shared data contracts; the frontend contract owns UI behavior. Resolve conflicts explicitly instead of maintaining two incompatible types.
 
 ## What is implemented in this milestone
