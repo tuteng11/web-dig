@@ -1,5 +1,6 @@
 # Local agent instructions (kept out of version control)
 AGENTS.md
+FIRST_COMMIT_PROMPT.md
 
 # Secrets and local environment
 .env

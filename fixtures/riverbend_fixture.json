@@ -1,0 +1,1389 @@
+{
+  "schema_version": 1,
+  "research_id": "fixture-riverbend",
+  "label": "Riverbend battery storage",
+  "seed_node_id": "n-seed",
+  "searched_at": "2026-07-12T10:00:00-04:00",
+  "stages": {
+    "initial": {
+      "graph_revision": 1,
+      "node_ids": [
+        "n-grassroots",
+        "n-seed",
+        "n-utility",
+        "n-hearing-live",
+        "n-hearing-notes",
+        "n-followup",
+        "n-dateonly",
+        "n-local",
+        "n-undated",
+        "n-synd-a",
+        "n-synd-b",
+        "n-minutes",
+        "n-forum-a",
+        "n-forum-b",
+        "n-blocked",
+        "n-regulators"
+      ],
+      "origin_eligible_node_ids": [
+        "n-grassroots",
+        "n-seed",
+        "n-utility",
+        "n-hearing-live",
+        "n-hearing-notes",
+        "n-followup",
+        "n-synd-a",
+        "n-synd-b",
+        "n-minutes",
+        "n-forum-a",
+        "n-forum-b",
+        "n-regulators"
+      ]
+    },
+    "expanded": {
+      "graph_revision": 2,
+      "node_ids": [
+        "n-grassroots",
+        "n-seed",
+        "n-utility",
+        "n-hearing-live",
+        "n-hearing-notes",
+        "n-followup",
+        "n-dateonly",
+        "n-local",
+        "n-undated",
+        "n-synd-a",
+        "n-synd-b",
+        "n-minutes",
+        "n-forum-a",
+        "n-forum-b",
+        "n-blocked",
+        "n-regulators",
+        "n-agenda"
+      ],
+      "origin_eligible_node_ids": [
+        "n-grassroots",
+        "n-seed",
+        "n-utility",
+        "n-hearing-live",
+        "n-hearing-notes",
+        "n-followup",
+        "n-synd-a",
+        "n-synd-b",
+        "n-minutes",
+        "n-forum-a",
+        "n-forum-b",
+        "n-regulators",
+        "n-agenda"
+      ]
+    }
+  },
+  "nodes": [
+    {
+      "id": "n-grassroots",
+      "research_id": "fixture-riverbend",
+      "content_kind": "post",
+      "requested_url": "https://riverbendneighbors.example/neighbors-organize-battery-yard",
+      "canonical_url": "https://riverbendneighbors.example/neighbors-organize-battery-yard",
+      "title": "Neighbors organize over proposed Riverbend battery yard",
+      "author": "Priya Nair",
+      "source": {
+        "name": "Riverbend Neighbors",
+        "domain": "riverbendneighbors.example",
+        "platform": "Community forum"
+      },
+      "publication": {
+        "timestamp": "2026-05-10T08:15:00-04:00",
+        "date": null,
+        "raw": "May 10, 2026 8:15 AM EDT",
+        "precision": "timestamp",
+        "timezone_status": "known",
+        "evidence_id": "ev-pub-n-grassroots"
+      },
+      "updated_at": null,
+      "retrieved_at": "2026-07-12T10:00:00-04:00",
+      "discovered_at": "2026-07-12T10:00:00-04:00",
+      "content_status": "full_text",
+      "excerpt": "A group of residents is asking for more fire-safety detail before the planned battery storage yard moves forward.",
+      "snapshot_id": "snap-n-grassroots",
+      "content_hash": "sha256:fixture-n-grassroots",
+      "warnings": []
+    },
+    {
+      "id": "n-seed",
+      "research_id": "fixture-riverbend",
+      "content_kind": "news",
+      "requested_url": "https://valleyherald.example/battery-storage-clears-council-vote",
+      "canonical_url": "https://valleyherald.example/battery-storage-clears-council-vote",
+      "title": "Riverbend battery storage project clears council vote",
+      "author": "Dana Ortiz",
+      "source": {
+        "name": "Valley Herald",
+        "domain": "valleyherald.example",
+        "platform": null
+      },
+      "publication": {
+        "timestamp": "2026-06-18T14:30:00-04:00",
+        "date": null,
+        "raw": "June 18, 2026 2:30 PM EDT",
+        "precision": "timestamp",
+        "timezone_status": "known",
+        "evidence_id": "ev-pub-n-seed"
+      },
+      "updated_at": null,
+      "retrieved_at": "2026-07-12T10:00:00-04:00",
+      "discovered_at": "2026-07-12T10:00:00-04:00",
+      "content_status": "full_text",
+      "excerpt": "The Riverbend city council voted 5-2 on Tuesday to approve the Meridian Grid battery storage project after months of neighborhood debate.",
+      "snapshot_id": "snap-n-seed",
+      "content_hash": "sha256:fixture-n-seed",
+      "warnings": []
+    },
+    {
+      "id": "n-utility",
+      "research_id": "fixture-riverbend",
+      "content_kind": "webpage",
+      "requested_url": "https://meridiangrid.example/riverbend-grid-storage/fact-sheet",
+      "canonical_url": "https://meridiangrid.example/riverbend-grid-storage/fact-sheet",
+      "title": "Project fact sheet: Riverbend Grid Storage",
+      "author": null,
+      "source": {
+        "name": "Meridian Grid",
+        "domain": "meridiangrid.example",
+        "platform": null
+      },
+      "publication": {
+        "timestamp": "2026-05-22T12:00:00-04:00",
+        "date": null,
+        "raw": "May 22, 2026 12:00 PM EDT",
+        "precision": "timestamp",
+        "timezone_status": "known",
+        "evidence_id": "ev-pub-n-utility"
+      },
+      "updated_at": null,
+      "retrieved_at": "2026-07-12T10:00:00-04:00",
+      "discovered_at": "2026-07-12T10:00:00-04:00",
+      "content_status": "full_text",
+      "excerpt": "Meridian Grid's fact sheet describes a 120-megawatt battery storage yard and links to the project's planning documents.",
+      "snapshot_id": "snap-n-utility",
+      "content_hash": "sha256:fixture-n-utility",
+      "warnings": []
+    },
+    {
+      "id": "n-hearing-live",
+      "research_id": "fixture-riverbend",
+      "content_kind": "post",
+      "requested_url": "https://riverbendneighbors.example/live-notes-june-2-hearing",
+      "canonical_url": "https://riverbendneighbors.example/live-notes-june-2-hearing",
+      "title": "Live notes from the June 2 battery storage hearing",
+      "author": "Sam Okafor",
+      "source": {
+        "name": "Riverbend Neighbors",
+        "domain": "riverbendneighbors.example",
+        "platform": "Community forum"
+      },
+      "publication": {
+        "timestamp": "2026-06-02T19:00:00-04:00",
+        "date": null,
+        "raw": "June 2, 2026 7:00 PM EDT",
+        "precision": "timestamp",
+        "timezone_status": "known",
+        "evidence_id": "ev-pub-n-hearing-live"
+      },
+      "updated_at": null,
+      "retrieved_at": "2026-07-12T10:00:00-04:00",
+      "discovered_at": "2026-07-12T10:00:00-04:00",
+      "content_status": "full_text",
+      "excerpt": "Live notes from the council hearing on the battery storage project, including questions about the fire response annex.",
+      "snapshot_id": "snap-n-hearing-live",
+      "content_hash": "sha256:fixture-n-hearing-live",
+      "warnings": []
+    },
+    {
+      "id": "n-hearing-notes",
+      "research_id": "fixture-riverbend",
+      "content_kind": "news",
+      "requested_url": "https://valleyherald.example/council-hears-battery-testimony",
+      "canonical_url": "https://valleyherald.example/council-hears-battery-testimony",
+      "title": "Council hears battery project testimony",
+      "author": "Dana Ortiz",
+      "source": {
+        "name": "Valley Herald",
+        "domain": "valleyherald.example",
+        "platform": null
+      },
+      "publication": {
+        "timestamp": "2026-06-02T19:00:00-04:00",
+        "date": null,
+        "raw": "June 2, 2026 7:00 PM EDT",
+        "precision": "timestamp",
+        "timezone_status": "known",
+        "evidence_id": "ev-pub-n-hearing-notes"
+      },
+      "updated_at": null,
+      "retrieved_at": "2026-07-12T10:00:00-04:00",
+      "discovered_at": "2026-07-12T10:00:00-04:00",
+      "content_status": "full_text",
+      "excerpt": "Residents and project engineers testified at the council hearing on the battery storage project; the session ran past 10 PM.",
+      "snapshot_id": "snap-n-hearing-notes",
+      "content_hash": "sha256:fixture-n-hearing-notes",
+      "warnings": []
+    },
+    {
+      "id": "n-followup",
+      "research_id": "fixture-riverbend",
+      "content_kind": "news",
+      "requested_url": "https://valleyherald.example/battery-yard-construction-timetable",
+      "canonical_url": "https://valleyherald.example/battery-yard-construction-timetable",
+      "title": "Construction timetable set for Riverbend battery yard",
+      "author": "Luis Moreno",
+      "source": {
+        "name": "Valley Herald",
+        "domain": "valleyherald.example",
+        "platform": null
+      },
+      "publication": {
+        "timestamp": "2026-07-09T10:20:00-04:00",
+        "date": null,
+        "raw": "July 9, 2026 10:20 AM EDT",
+        "precision": "timestamp",
+        "timezone_status": "known",
+        "evidence_id": "ev-pub-n-followup"
+      },
+      "updated_at": null,
+      "retrieved_at": "2026-07-12T10:00:00-04:00",
+      "discovered_at": "2026-07-12T10:00:00-04:00",
+      "content_status": "full_text",
+      "excerpt": "After the June council vote, the developer outlined a construction timetable starting in September.",
+      "snapshot_id": "snap-n-followup",
+      "content_hash": "sha256:fixture-n-followup",
+      "warnings": []
+    },
+    {
+      "id": "n-dateonly",
+      "research_id": "fixture-riverbend",
+      "content_kind": "news",
+      "requested_url": "https://eastvalleypost.example/battery-storage-debate-continues",
+      "canonical_url": "https://eastvalleypost.example/battery-storage-debate-continues",
+      "title": "Battery storage debate continues",
+      "author": "Rae Kim",
+      "source": {
+        "name": "East Valley Post",
+        "domain": "eastvalleypost.example",
+        "platform": null
+      },
+      "publication": {
+        "timestamp": null,
+        "date": "2026-05-30",
+        "raw": "May 30, 2026",
+        "precision": "date",
+        "timezone_status": "unknown",
+        "evidence_id": "ev-pub-n-dateonly"
+      },
+      "updated_at": null,
+      "retrieved_at": "2026-07-12T10:00:00-04:00",
+      "discovered_at": "2026-07-12T10:00:00-04:00",
+      "content_status": "excerpt",
+      "excerpt": "The debate over battery storage continues as residents await the next planning meeting.",
+      "snapshot_id": "snap-n-dateonly",
+      "content_hash": "sha256:fixture-n-dateonly",
+      "warnings": []
+    },
+    {
+      "id": "n-local",
+      "research_id": "fixture-riverbend",
+      "content_kind": "post",
+      "requested_url": "https://riverbendneighbors.example/my-take-battery-vote",
+      "canonical_url": "https://riverbendneighbors.example/my-take-battery-vote",
+      "title": "My take on the battery vote",
+      "author": "A. Resident",
+      "source": {
+        "name": "Riverbend Neighbors",
+        "domain": "riverbendneighbors.example",
+        "platform": "Community forum"
+      },
+      "publication": {
+        "timestamp": null,
+        "date": "2026-06-02",
+        "raw": "June 2, 2026 7:00 PM",
+        "precision": "date",
+        "timezone_status": "unknown",
+        "evidence_id": "ev-pub-n-local"
+      },
+      "updated_at": null,
+      "retrieved_at": "2026-07-12T10:00:00-04:00",
+      "discovered_at": "2026-07-12T10:00:00-04:00",
+      "content_status": "excerpt",
+      "excerpt": "I attended the hearing and still have questions about the fire response plan.",
+      "snapshot_id": "snap-n-local",
+      "content_hash": "sha256:fixture-n-local",
+      "warnings": [
+        "Source reported a local time without a timezone; raw text preserved."
+      ]
+    },
+    {
+      "id": "n-undated",
+      "research_id": "fixture-riverbend",
+      "content_kind": "news",
+      "requested_url": "https://rbpublicradio.example/battery-storage-what-we-know",
+      "canonical_url": "https://rbpublicradio.example/battery-storage-what-we-know",
+      "title": "Battery storage: what we know",
+      "author": null,
+      "source": {
+        "name": "Riverbend Public Radio",
+        "domain": "rbpublicradio.example",
+        "platform": null
+      },
+      "publication": {
+        "timestamp": null,
+        "date": null,
+        "raw": "Date not shown on search result",
+        "precision": "unknown",
+        "timezone_status": "unknown",
+        "evidence_id": "ev-pub-n-undated"
+      },
+      "updated_at": null,
+      "retrieved_at": "2026-07-12T10:00:00-04:00",
+      "discovered_at": "2026-07-12T10:00:00-04:00",
+      "content_status": "snippet_only",
+      "excerpt": "A search snippet summarizes the project timeline but does not show a publication date.",
+      "snapshot_id": null,
+      "content_hash": null,
+      "warnings": [
+        "Search snippet only; full page and publication time were unavailable."
+      ]
+    },
+    {
+      "id": "n-synd-a",
+      "research_id": "fixture-riverbend",
+      "content_kind": "news",
+      "requested_url": "https://metrowire.example/riverbend-battery-vote",
+      "canonical_url": "https://metrowire.example/riverbend-battery-vote",
+      "title": "Riverbend battery storage project clears council vote",
+      "author": "Valley Herald Staff",
+      "source": {
+        "name": "Metro Wire",
+        "domain": "metrowire.example",
+        "platform": null
+      },
+      "publication": {
+        "timestamp": "2026-06-18T15:00:00-04:00",
+        "date": null,
+        "raw": "June 18, 2026 3:00 PM EDT",
+        "precision": "timestamp",
+        "timezone_status": "known",
+        "evidence_id": "ev-pub-n-synd-a"
+      },
+      "updated_at": null,
+      "retrieved_at": "2026-07-12T10:00:00-04:00",
+      "discovered_at": "2026-07-12T10:00:00-04:00",
+      "content_status": "full_text",
+      "excerpt": "The Riverbend city council voted 5-2 on Tuesday to approve the Meridian Grid battery storage project after months of neighborhood debate.",
+      "snapshot_id": "snap-n-synd-a",
+      "content_hash": "sha256:fixture-duplicate-council-vote",
+      "warnings": []
+    },
+    {
+      "id": "n-synd-b",
+      "research_id": "fixture-riverbend",
+      "content_kind": "news",
+      "requested_url": "https://statenews.example/riverbend-battery-vote-syndicated",
+      "canonical_url": "https://statenews.example/riverbend-battery-vote-syndicated",
+      "title": "Riverbend battery storage project clears council vote",
+      "author": null,
+      "source": {
+        "name": "State News Service",
+        "domain": "statenews.example",
+        "platform": null
+      },
+      "publication": {
+        "timestamp": "2026-06-18T16:30:00-04:00",
+        "date": null,
+        "raw": "June 18, 2026 4:30 PM EDT",
+        "precision": "timestamp",
+        "timezone_status": "known",
+        "evidence_id": "ev-pub-n-synd-b"
+      },
+      "updated_at": null,
+      "retrieved_at": "2026-07-12T10:00:00-04:00",
+      "discovered_at": "2026-07-12T10:00:00-04:00",
+      "content_status": "full_text",
+      "excerpt": "The Riverbend city council voted 5-2 on Tuesday to approve the Meridian Grid battery storage project after months of neighborhood debate.",
+      "snapshot_id": "snap-n-synd-b",
+      "content_hash": "sha256:fixture-duplicate-council-vote",
+      "warnings": []
+    },
+    {
+      "id": "n-minutes",
+      "research_id": "fixture-riverbend",
+      "content_kind": "webpage",
+      "requested_url": "https://riverbendcity.example/council/minutes/2026-06-17",
+      "canonical_url": "https://riverbendcity.example/council/minutes/2026-06-17",
+      "title": "June 17, 2026 council meeting minutes",
+      "author": null,
+      "source": {
+        "name": "City of Riverbend",
+        "domain": "riverbendcity.example",
+        "platform": null
+      },
+      "publication": {
+        "timestamp": "2026-06-20T09:00:00-04:00",
+        "date": null,
+        "raw": "Published June 20, 2026 9:00 AM EDT",
+        "precision": "timestamp",
+        "timezone_status": "known",
+        "evidence_id": "ev-pub-n-minutes"
+      },
+      "updated_at": null,
+      "retrieved_at": "2026-07-12T10:00:00-04:00",
+      "discovered_at": "2026-07-12T10:00:00-04:00",
+      "content_status": "full_text",
+      "excerpt": "The approved minutes record the 5-2 vote and reference the fire-safety review.",
+      "snapshot_id": "snap-n-minutes",
+      "content_hash": "sha256:fixture-n-minutes",
+      "warnings": []
+    },
+    {
+      "id": "n-forum-a",
+      "research_id": "fixture-riverbend",
+      "content_kind": "post",
+      "requested_url": "https://riverbendneighbors.example/question-battery-yard-fire-plan",
+      "canonical_url": "https://riverbendneighbors.example/question-battery-yard-fire-plan",
+      "title": "Question about the battery yard fire plan",
+      "author": "Jules",
+      "source": {
+        "name": "Riverbend Neighbors",
+        "domain": "riverbendneighbors.example",
+        "platform": "Community forum"
+      },
+      "publication": {
+        "timestamp": "2026-06-05T21:10:00-04:00",
+        "date": null,
+        "raw": "June 5, 2026 9:10 PM EDT",
+        "precision": "timestamp",
+        "timezone_status": "known",
+        "evidence_id": "ev-pub-n-forum-a"
+      },
+      "updated_at": null,
+      "retrieved_at": "2026-07-12T10:00:00-04:00",
+      "discovered_at": "2026-07-12T10:00:00-04:00",
+      "content_status": "excerpt",
+      "excerpt": "Does anyone have the fire response annex referenced at the hearing?",
+      "snapshot_id": "snap-n-forum-a",
+      "content_hash": "sha256:fixture-n-forum-a",
+      "warnings": []
+    },
+    {
+      "id": "n-forum-b",
+      "research_id": "fixture-riverbend",
+      "content_kind": "post",
+      "requested_url": "https://riverbendneighbors.example/re-question-battery-yard-fire-plan",
+      "canonical_url": "https://riverbendneighbors.example/re-question-battery-yard-fire-plan",
+      "title": "Re: Question about the battery yard fire plan",
+      "author": "Morgan",
+      "source": {
+        "name": "Riverbend Neighbors",
+        "domain": "riverbendneighbors.example",
+        "platform": "Community forum"
+      },
+      "publication": {
+        "timestamp": "2026-06-06T07:45:00-04:00",
+        "date": null,
+        "raw": "June 6, 2026 7:45 AM EDT",
+        "precision": "timestamp",
+        "timezone_status": "known",
+        "evidence_id": "ev-pub-n-forum-b"
+      },
+      "updated_at": null,
+      "retrieved_at": "2026-07-12T10:00:00-04:00",
+      "discovered_at": "2026-07-12T10:00:00-04:00",
+      "content_status": "excerpt",
+      "excerpt": "The annex is linked from the city minutes; I posted the relevant section below.",
+      "snapshot_id": "snap-n-forum-b",
+      "content_hash": "sha256:fixture-n-forum-b",
+      "warnings": []
+    },
+    {
+      "id": "n-blocked",
+      "research_id": "fixture-riverbend",
+      "content_kind": "webpage",
+      "requested_url": "https://meridiangrid.example/riverbend-grid-storage/faq",
+      "canonical_url": "https://meridiangrid.example/riverbend-grid-storage/faq",
+      "title": "Developer FAQ: Riverbend battery storage",
+      "author": null,
+      "source": {
+        "name": "Meridian Grid",
+        "domain": "meridiangrid.example",
+        "platform": null
+      },
+      "publication": {
+        "timestamp": null,
+        "date": "2026-05-01",
+        "raw": "May 1, 2026",
+        "precision": "date",
+        "timezone_status": "unknown",
+        "evidence_id": "ev-pub-n-blocked"
+      },
+      "updated_at": null,
+      "retrieved_at": "2026-07-12T10:00:00-04:00",
+      "discovered_at": "2026-07-12T10:00:00-04:00",
+      "content_status": "unavailable",
+      "excerpt": null,
+      "snapshot_id": null,
+      "content_hash": null,
+      "warnings": [
+        "Fixture: source was unavailable behind a login wall; no content was captured."
+      ]
+    },
+    {
+      "id": "n-regulators",
+      "research_id": "fixture-riverbend",
+      "content_kind": "news",
+      "requested_url": "https://capitaldesk.example/state-regulators-review-battery-project",
+      "canonical_url": "https://capitaldesk.example/state-regulators-review-battery-project",
+      "title": "State regulators review Riverbend battery project",
+      "author": "Nia Brooks",
+      "source": {
+        "name": "Capital Desk",
+        "domain": "capitaldesk.example",
+        "platform": null
+      },
+      "publication": {
+        "timestamp": "2026-06-25T11:00:00-04:00",
+        "date": null,
+        "raw": "June 25, 2026 11:00 AM EDT",
+        "precision": "timestamp",
+        "timezone_status": "known",
+        "evidence_id": "ev-pub-n-regulators"
+      },
+      "updated_at": null,
+      "retrieved_at": "2026-07-12T10:00:00-04:00",
+      "discovered_at": "2026-07-12T10:00:00-04:00",
+      "content_status": "full_text",
+      "excerpt": "State regulators have requested the council record and the project fact sheet for review.",
+      "snapshot_id": "snap-n-regulators",
+      "content_hash": "sha256:fixture-n-regulators",
+      "warnings": []
+    },
+    {
+      "id": "n-agenda",
+      "research_id": "fixture-riverbend",
+      "content_kind": "news",
+      "requested_url": "https://eastvalleypost.example/planning-board-agenda-battery-hearing",
+      "canonical_url": "https://eastvalleypost.example/planning-board-agenda-battery-hearing",
+      "title": "Planning board agenda lists battery storage hearing",
+      "author": "Rae Kim",
+      "source": {
+        "name": "East Valley Post",
+        "domain": "eastvalleypost.example",
+        "platform": null
+      },
+      "publication": {
+        "timestamp": "2026-04-28T09:00:00-04:00",
+        "date": null,
+        "raw": "April 28, 2026 9:00 AM EDT",
+        "precision": "timestamp",
+        "timezone_status": "known",
+        "evidence_id": "ev-pub-n-agenda"
+      },
+      "updated_at": null,
+      "retrieved_at": "2026-07-12T10:00:00-04:00",
+      "discovered_at": "2026-07-12T10:00:00-04:00",
+      "content_status": "full_text",
+      "excerpt": "The April agenda lists a battery storage hearing and links to the project packet.",
+      "snapshot_id": "snap-n-agenda",
+      "content_hash": "sha256:fixture-n-agenda",
+      "warnings": []
+    }
+  ],
+  "evidence": [
+    {
+      "id": "ev-pub-n-grassroots",
+      "node_id": "n-grassroots",
+      "snapshot_id": "snap-n-grassroots",
+      "kind": "metadata",
+      "quote": null,
+      "start": null,
+      "end": null,
+      "link_target": null,
+      "metadata_field": "publication.timestamp",
+      "metadata_value": "2026-05-10T08:15:00-04:00",
+      "retrieved_at": "2026-07-12T10:00:00-04:00"
+    },
+    {
+      "id": "ev-pub-n-seed",
+      "node_id": "n-seed",
+      "snapshot_id": "snap-n-seed",
+      "kind": "metadata",
+      "quote": null,
+      "start": null,
+      "end": null,
+      "link_target": null,
+      "metadata_field": "publication.timestamp",
+      "metadata_value": "2026-06-18T14:30:00-04:00",
+      "retrieved_at": "2026-07-12T10:00:00-04:00"
+    },
+    {
+      "id": "ev-pub-n-utility",
+      "node_id": "n-utility",
+      "snapshot_id": "snap-n-utility",
+      "kind": "metadata",
+      "quote": null,
+      "start": null,
+      "end": null,
+      "link_target": null,
+      "metadata_field": "publication.timestamp",
+      "metadata_value": "2026-05-22T12:00:00-04:00",
+      "retrieved_at": "2026-07-12T10:00:00-04:00"
+    },
+    {
+      "id": "ev-pub-n-hearing-live",
+      "node_id": "n-hearing-live",
+      "snapshot_id": "snap-n-hearing-live",
+      "kind": "metadata",
+      "quote": null,
+      "start": null,
+      "end": null,
+      "link_target": null,
+      "metadata_field": "publication.timestamp",
+      "metadata_value": "2026-06-02T19:00:00-04:00",
+      "retrieved_at": "2026-07-12T10:00:00-04:00"
+    },
+    {
+      "id": "ev-pub-n-hearing-notes",
+      "node_id": "n-hearing-notes",
+      "snapshot_id": "snap-n-hearing-notes",
+      "kind": "metadata",
+      "quote": null,
+      "start": null,
+      "end": null,
+      "link_target": null,
+      "metadata_field": "publication.timestamp",
+      "metadata_value": "2026-06-02T19:00:00-04:00",
+      "retrieved_at": "2026-07-12T10:00:00-04:00"
+    },
+    {
+      "id": "ev-pub-n-followup",
+      "node_id": "n-followup",
+      "snapshot_id": "snap-n-followup",
+      "kind": "metadata",
+      "quote": null,
+      "start": null,
+      "end": null,
+      "link_target": null,
+      "metadata_field": "publication.timestamp",
+      "metadata_value": "2026-07-09T10:20:00-04:00",
+      "retrieved_at": "2026-07-12T10:00:00-04:00"
+    },
+    {
+      "id": "ev-pub-n-dateonly",
+      "node_id": "n-dateonly",
+      "snapshot_id": "snap-n-dateonly",
+      "kind": "metadata",
+      "quote": null,
+      "start": null,
+      "end": null,
+      "link_target": null,
+      "metadata_field": "publication.date",
+      "metadata_value": "2026-05-30",
+      "retrieved_at": "2026-07-12T10:00:00-04:00"
+    },
+    {
+      "id": "ev-pub-n-local",
+      "node_id": "n-local",
+      "snapshot_id": "snap-n-local",
+      "kind": "metadata",
+      "quote": null,
+      "start": null,
+      "end": null,
+      "link_target": null,
+      "metadata_field": "publication.date",
+      "metadata_value": "2026-06-02",
+      "retrieved_at": "2026-07-12T10:00:00-04:00"
+    },
+    {
+      "id": "ev-pub-n-undated",
+      "node_id": "n-undated",
+      "snapshot_id": "snap-search-n-undated",
+      "kind": "metadata",
+      "quote": null,
+      "start": null,
+      "end": null,
+      "link_target": null,
+      "metadata_field": "publication.raw",
+      "metadata_value": "Date not shown on search result",
+      "retrieved_at": "2026-07-12T10:00:00-04:00"
+    },
+    {
+      "id": "ev-pub-n-synd-a",
+      "node_id": "n-synd-a",
+      "snapshot_id": "snap-n-synd-a",
+      "kind": "metadata",
+      "quote": null,
+      "start": null,
+      "end": null,
+      "link_target": null,
+      "metadata_field": "publication.timestamp",
+      "metadata_value": "2026-06-18T15:00:00-04:00",
+      "retrieved_at": "2026-07-12T10:00:00-04:00"
+    },
+    {
+      "id": "ev-pub-n-synd-b",
+      "node_id": "n-synd-b",
+      "snapshot_id": "snap-n-synd-b",
+      "kind": "metadata",
+      "quote": null,
+      "start": null,
+      "end": null,
+      "link_target": null,
+      "metadata_field": "publication.timestamp",
+      "metadata_value": "2026-06-18T16:30:00-04:00",
+      "retrieved_at": "2026-07-12T10:00:00-04:00"
+    },
+    {
+      "id": "ev-pub-n-minutes",
+      "node_id": "n-minutes",
+      "snapshot_id": "snap-n-minutes",
+      "kind": "metadata",
+      "quote": null,
+      "start": null,
+      "end": null,
+      "link_target": null,
+      "metadata_field": "publication.timestamp",
+      "metadata_value": "2026-06-20T09:00:00-04:00",
+      "retrieved_at": "2026-07-12T10:00:00-04:00"
+    },
+    {
+      "id": "ev-pub-n-forum-a",
+      "node_id": "n-forum-a",
+      "snapshot_id": "snap-n-forum-a",
+      "kind": "metadata",
+      "quote": null,
+      "start": null,
+      "end": null,
+      "link_target": null,
+      "metadata_field": "publication.timestamp",
+      "metadata_value": "2026-06-05T21:10:00-04:00",
+      "retrieved_at": "2026-07-12T10:00:00-04:00"
+    },
+    {
+      "id": "ev-pub-n-forum-b",
+      "node_id": "n-forum-b",
+      "snapshot_id": "snap-n-forum-b",
+      "kind": "metadata",
+      "quote": null,
+      "start": null,
+      "end": null,
+      "link_target": null,
+      "metadata_field": "publication.timestamp",
+      "metadata_value": "2026-06-06T07:45:00-04:00",
+      "retrieved_at": "2026-07-12T10:00:00-04:00"
+    },
+    {
+      "id": "ev-pub-n-blocked",
+      "node_id": "n-blocked",
+      "snapshot_id": "snap-search-n-blocked",
+      "kind": "metadata",
+      "quote": null,
+      "start": null,
+      "end": null,
+      "link_target": null,
+      "metadata_field": "publication.date",
+      "metadata_value": "2026-05-01",
+      "retrieved_at": "2026-07-12T10:00:00-04:00"
+    },
+    {
+      "id": "ev-pub-n-regulators",
+      "node_id": "n-regulators",
+      "snapshot_id": "snap-n-regulators",
+      "kind": "metadata",
+      "quote": null,
+      "start": null,
+      "end": null,
+      "link_target": null,
+      "metadata_field": "publication.timestamp",
+      "metadata_value": "2026-06-25T11:00:00-04:00",
+      "retrieved_at": "2026-07-12T10:00:00-04:00"
+    },
+    {
+      "id": "ev-pub-n-agenda",
+      "node_id": "n-agenda",
+      "snapshot_id": "snap-n-agenda",
+      "kind": "metadata",
+      "quote": null,
+      "start": null,
+      "end": null,
+      "link_target": null,
+      "metadata_field": "publication.timestamp",
+      "metadata_value": "2026-04-28T09:00:00-04:00",
+      "retrieved_at": "2026-07-12T10:00:00-04:00"
+    },
+    {
+      "id": "ev-link-seed-grassroots",
+      "node_id": "n-seed",
+      "snapshot_id": "snap-n-seed",
+      "kind": "link",
+      "quote": "first reported by Riverbend Neighbors",
+      "start": null,
+      "end": null,
+      "link_target": "https://riverbendneighbors.example/neighbors-organize-battery-yard",
+      "metadata_field": null,
+      "metadata_value": null,
+      "retrieved_at": "2026-07-12T10:00:00-04:00"
+    },
+    {
+      "id": "ev-link-seed-minutes",
+      "node_id": "n-seed",
+      "snapshot_id": "snap-n-seed",
+      "kind": "link",
+      "quote": "meeting minutes",
+      "start": null,
+      "end": null,
+      "link_target": "https://riverbendcity.example/council/minutes/2026-06-17",
+      "metadata_field": null,
+      "metadata_value": null,
+      "retrieved_at": "2026-07-12T10:00:00-04:00"
+    },
+    {
+      "id": "ev-link-utility-minutes",
+      "node_id": "n-utility",
+      "snapshot_id": "snap-n-utility",
+      "kind": "link",
+      "quote": "approved council minutes",
+      "start": null,
+      "end": null,
+      "link_target": "https://riverbendcity.example/council/minutes/2026-06-17",
+      "metadata_field": null,
+      "metadata_value": null,
+      "retrieved_at": "2026-07-12T10:00:00-04:00"
+    },
+    {
+      "id": "ev-link-grassroots-utility",
+      "node_id": "n-grassroots",
+      "snapshot_id": "snap-n-grassroots",
+      "kind": "link",
+      "quote": "project fact sheet",
+      "start": null,
+      "end": null,
+      "link_target": "https://meridiangrid.example/riverbend-grid-storage/fact-sheet",
+      "metadata_field": null,
+      "metadata_value": null,
+      "retrieved_at": "2026-07-12T10:00:00-04:00"
+    },
+    {
+      "id": "ev-platform-live-reply",
+      "node_id": "n-hearing-live",
+      "snapshot_id": "snap-n-hearing-live",
+      "kind": "metadata",
+      "quote": null,
+      "start": null,
+      "end": null,
+      "link_target": null,
+      "metadata_field": "platform.reply_to",
+      "metadata_value": "https://riverbendneighbors.example/neighbors-organize-battery-yard",
+      "retrieved_at": "2026-07-12T10:00:00-04:00"
+    },
+    {
+      "id": "ev-quote-notes-event",
+      "node_id": "n-hearing-notes",
+      "snapshot_id": "snap-n-hearing-notes",
+      "kind": "text_quote",
+      "quote": "council hearing on the battery storage project",
+      "start": null,
+      "end": null,
+      "link_target": null,
+      "metadata_field": null,
+      "metadata_value": null,
+      "retrieved_at": "2026-07-12T10:00:00-04:00"
+    },
+    {
+      "id": "ev-quote-live-event",
+      "node_id": "n-hearing-live",
+      "snapshot_id": "snap-n-hearing-live",
+      "kind": "text_quote",
+      "quote": "hearing on the battery storage project",
+      "start": null,
+      "end": null,
+      "link_target": null,
+      "metadata_field": null,
+      "metadata_value": null,
+      "retrieved_at": "2026-07-12T10:00:00-04:00"
+    },
+    {
+      "id": "ev-quote-followup-ref",
+      "node_id": "n-followup",
+      "snapshot_id": "snap-n-followup",
+      "kind": "text_quote",
+      "quote": "after the June council vote",
+      "start": null,
+      "end": null,
+      "link_target": null,
+      "metadata_field": null,
+      "metadata_value": null,
+      "retrieved_at": "2026-07-12T10:00:00-04:00"
+    },
+    {
+      "id": "ev-platform-synd-a",
+      "node_id": "n-synd-a",
+      "snapshot_id": "snap-n-synd-a",
+      "kind": "metadata",
+      "quote": null,
+      "start": null,
+      "end": null,
+      "link_target": null,
+      "metadata_field": "syndication.original_publisher",
+      "metadata_value": "Valley Herald",
+      "retrieved_at": "2026-07-12T10:00:00-04:00"
+    },
+    {
+      "id": "ev-platform-synd-b",
+      "node_id": "n-synd-b",
+      "snapshot_id": "snap-n-synd-b",
+      "kind": "metadata",
+      "quote": null,
+      "start": null,
+      "end": null,
+      "link_target": null,
+      "metadata_field": "syndication.source",
+      "metadata_value": "Metro Wire",
+      "retrieved_at": "2026-07-12T10:00:00-04:00"
+    },
+    {
+      "id": "ev-link-forum-a-b",
+      "node_id": "n-forum-a",
+      "snapshot_id": "snap-n-forum-a",
+      "kind": "link",
+      "quote": "fire response annex",
+      "start": null,
+      "end": null,
+      "link_target": "https://riverbendneighbors.example/re-question-battery-yard-fire-plan",
+      "metadata_field": null,
+      "metadata_value": null,
+      "retrieved_at": "2026-07-12T10:00:00-04:00"
+    },
+    {
+      "id": "ev-link-forum-b-a",
+      "node_id": "n-forum-b",
+      "snapshot_id": "snap-n-forum-b",
+      "kind": "link",
+      "quote": "city minutes",
+      "start": null,
+      "end": null,
+      "link_target": "https://riverbendneighbors.example/question-battery-yard-fire-plan",
+      "metadata_field": null,
+      "metadata_value": null,
+      "retrieved_at": "2026-07-12T10:00:00-04:00"
+    },
+    {
+      "id": "ev-link-regulators-minutes",
+      "node_id": "n-regulators",
+      "snapshot_id": "snap-n-regulators",
+      "kind": "link",
+      "quote": "council record",
+      "start": null,
+      "end": null,
+      "link_target": "https://riverbendcity.example/council/minutes/2026-06-17",
+      "metadata_field": null,
+      "metadata_value": null,
+      "retrieved_at": "2026-07-12T10:00:00-04:00"
+    },
+    {
+      "id": "ev-link-regulators-utility",
+      "node_id": "n-regulators",
+      "snapshot_id": "snap-n-regulators",
+      "kind": "link",
+      "quote": "project fact sheet",
+      "start": null,
+      "end": null,
+      "link_target": "https://meridiangrid.example/riverbend-grid-storage/fact-sheet",
+      "metadata_field": null,
+      "metadata_value": null,
+      "retrieved_at": "2026-07-12T10:00:00-04:00"
+    },
+    {
+      "id": "ev-quote-regulators-topic",
+      "node_id": "n-regulators",
+      "snapshot_id": "snap-n-regulators",
+      "kind": "text_quote",
+      "quote": "battery storage project review",
+      "start": null,
+      "end": null,
+      "link_target": null,
+      "metadata_field": null,
+      "metadata_value": null,
+      "retrieved_at": "2026-07-12T10:00:00-04:00"
+    },
+    {
+      "id": "ev-quote-seed-topic",
+      "node_id": "n-seed",
+      "snapshot_id": "snap-n-seed",
+      "kind": "text_quote",
+      "quote": "battery storage project",
+      "start": null,
+      "end": null,
+      "link_target": null,
+      "metadata_field": null,
+      "metadata_value": null,
+      "retrieved_at": "2026-07-12T10:00:00-04:00"
+    },
+    {
+      "id": "ev-quote-local-topic",
+      "node_id": "n-local",
+      "snapshot_id": "snap-n-local",
+      "kind": "text_quote",
+      "quote": "battery storage",
+      "start": null,
+      "end": null,
+      "link_target": null,
+      "metadata_field": null,
+      "metadata_value": null,
+      "retrieved_at": "2026-07-12T10:00:00-04:00"
+    },
+    {
+      "id": "ev-link-dateonly-grassroots",
+      "node_id": "n-dateonly",
+      "snapshot_id": "snap-n-dateonly",
+      "kind": "link",
+      "quote": "neighborhood organizing",
+      "start": null,
+      "end": null,
+      "link_target": "https://riverbendneighbors.example/neighbors-organize-battery-yard",
+      "metadata_field": null,
+      "metadata_value": null,
+      "retrieved_at": "2026-07-12T10:00:00-04:00"
+    },
+    {
+      "id": "ev-link-undated-grassroots",
+      "node_id": "n-undated",
+      "snapshot_id": "snap-search-n-undated",
+      "kind": "search_result",
+      "quote": null,
+      "start": null,
+      "end": null,
+      "link_target": "https://riverbendneighbors.example/neighbors-organize-battery-yard",
+      "metadata_field": "search_result.url",
+      "metadata_value": "https://riverbendneighbors.example/neighbors-organize-battery-yard",
+      "retrieved_at": "2026-07-12T10:00:00-04:00"
+    },
+    {
+      "id": "ev-link-blocked-utility",
+      "node_id": "n-blocked",
+      "snapshot_id": "snap-search-n-blocked",
+      "kind": "search_result",
+      "quote": null,
+      "start": null,
+      "end": null,
+      "link_target": "https://meridiangrid.example/riverbend-grid-storage/fact-sheet",
+      "metadata_field": "search_result.url",
+      "metadata_value": "https://meridiangrid.example/riverbend-grid-storage/fact-sheet",
+      "retrieved_at": "2026-07-12T10:00:00-04:00"
+    },
+    {
+      "id": "ev-link-grassroots-agenda",
+      "node_id": "n-grassroots",
+      "snapshot_id": "snap-n-grassroots",
+      "kind": "link",
+      "quote": "April planning board agenda",
+      "start": null,
+      "end": null,
+      "link_target": "https://eastvalleypost.example/planning-board-agenda-battery-hearing",
+      "metadata_field": null,
+      "metadata_value": null,
+      "retrieved_at": "2026-07-12T10:00:00-04:00"
+    }
+  ],
+  "relationships": [
+    {
+      "id": "r-seed-links-grassroots",
+      "from_node_id": "n-seed",
+      "to_node_id": "n-grassroots",
+      "kind": "links_to",
+      "directed": true,
+      "method": "source_link",
+      "explanation": "The council-vote report links to the earlier neighborhood organizing post.",
+      "evidence_ids": [
+        "ev-link-seed-grassroots"
+      ],
+      "score": null,
+      "status": "validated",
+      "created_at": "2026-07-12T10:05:00-04:00"
+    },
+    {
+      "id": "r-seed-references-minutes",
+      "from_node_id": "n-seed",
+      "to_node_id": "n-minutes",
+      "kind": "references",
+      "directed": true,
+      "method": "source_link",
+      "explanation": "The report points readers to the approved council minutes.",
+      "evidence_ids": [
+        "ev-link-seed-minutes"
+      ],
+      "score": null,
+      "status": "validated",
+      "created_at": "2026-07-12T10:05:00-04:00"
+    },
+    {
+      "id": "r-utility-references-minutes",
+      "from_node_id": "n-utility",
+      "to_node_id": "n-minutes",
+      "kind": "references",
+      "directed": true,
+      "method": "source_link",
+      "explanation": "The project fact sheet cites the approved council minutes.",
+      "evidence_ids": [
+        "ev-link-utility-minutes"
+      ],
+      "score": null,
+      "status": "validated",
+      "created_at": "2026-07-12T10:05:00-04:00"
+    },
+    {
+      "id": "r-grassroots-references-utility",
+      "from_node_id": "n-grassroots",
+      "to_node_id": "n-utility",
+      "kind": "references",
+      "directed": true,
+      "method": "source_link",
+      "explanation": "The neighborhood post links to the developer's project fact sheet.",
+      "evidence_ids": [
+        "ev-link-grassroots-utility"
+      ],
+      "score": null,
+      "status": "validated",
+      "created_at": "2026-07-12T10:05:00-04:00"
+    },
+    {
+      "id": "r-live-replies-grassroots",
+      "from_node_id": "n-hearing-live",
+      "to_node_id": "n-grassroots",
+      "kind": "replies_to",
+      "directed": true,
+      "method": "platform_metadata",
+      "explanation": "The live-notes post replies to the earlier neighborhood organizing thread.",
+      "evidence_ids": [
+        "ev-platform-live-reply"
+      ],
+      "score": null,
+      "status": "validated",
+      "created_at": "2026-07-12T10:05:00-04:00"
+    },
+    {
+      "id": "r-notes-same-event-live",
+      "from_node_id": "n-hearing-notes",
+      "to_node_id": "n-hearing-live",
+      "kind": "same_event",
+      "directed": false,
+      "method": "llm_inference",
+      "explanation": "Both items report the same June 2 council hearing.",
+      "evidence_ids": [
+        "ev-quote-notes-event",
+        "ev-quote-live-event"
+      ],
+      "score": null,
+      "status": "validated",
+      "created_at": "2026-07-12T10:05:00-04:00"
+    },
+    {
+      "id": "r-followup-follows-seed",
+      "from_node_id": "n-followup",
+      "to_node_id": "n-seed",
+      "kind": "follows_up",
+      "directed": true,
+      "method": "llm_inference",
+      "explanation": "The construction timetable follows the June council vote report.",
+      "evidence_ids": [
+        "ev-quote-followup-ref"
+      ],
+      "score": null,
+      "status": "validated",
+      "created_at": "2026-07-12T10:05:00-04:00"
+    },
+    {
+      "id": "r-synd-a-reposts-seed",
+      "from_node_id": "n-synd-a",
+      "to_node_id": "n-seed",
+      "kind": "reposts",
+      "directed": true,
+      "method": "platform_metadata",
+      "explanation": "Metro Wire republishes the Valley Herald report under a syndication label.",
+      "evidence_ids": [
+        "ev-platform-synd-a"
+      ],
+      "score": null,
+      "status": "validated",
+      "created_at": "2026-07-12T10:05:00-04:00"
+    },
+    {
+      "id": "r-synd-b-reposts-synd-a",
+      "from_node_id": "n-synd-b",
+      "to_node_id": "n-synd-a",
+      "kind": "reposts",
+      "directed": true,
+      "method": "platform_metadata",
+      "explanation": "State News Service carries the same syndicated text after Metro Wire.",
+      "evidence_ids": [
+        "ev-platform-synd-b"
+      ],
+      "score": null,
+      "status": "validated",
+      "created_at": "2026-07-12T10:05:00-04:00"
+    },
+    {
+      "id": "r-forum-a-links-forum-b",
+      "from_node_id": "n-forum-a",
+      "to_node_id": "n-forum-b",
+      "kind": "links_to",
+      "directed": true,
+      "method": "source_link",
+      "explanation": "The question post links forward to the reply that answers it.",
+      "evidence_ids": [
+        "ev-link-forum-a-b"
+      ],
+      "score": null,
+      "status": "validated",
+      "created_at": "2026-07-12T10:05:00-04:00"
+    },
+    {
+      "id": "r-forum-b-links-forum-a",
+      "from_node_id": "n-forum-b",
+      "to_node_id": "n-forum-a",
+      "kind": "links_to",
+      "directed": true,
+      "method": "source_link",
+      "explanation": "The reply links back to the question, forming a cross-link cycle.",
+      "evidence_ids": [
+        "ev-link-forum-b-a"
+      ],
+      "score": null,
+      "status": "validated",
+      "created_at": "2026-07-12T10:05:00-04:00"
+    },
+    {
+      "id": "r-regulators-references-minutes",
+      "from_node_id": "n-regulators",
+      "to_node_id": "n-minutes",
+      "kind": "references",
+      "directed": true,
+      "method": "source_link",
+      "explanation": "The regulator report cites the council minutes.",
+      "evidence_ids": [
+        "ev-link-regulators-minutes"
+      ],
+      "score": null,
+      "status": "validated",
+      "created_at": "2026-07-12T10:05:00-04:00"
+    },
+    {
+      "id": "r-regulators-references-utility",
+      "from_node_id": "n-regulators",
+      "to_node_id": "n-utility",
+      "kind": "references",
+      "directed": true,
+      "method": "source_link",
+      "explanation": "The regulator report also cites the project fact sheet.",
+      "evidence_ids": [
+        "ev-link-regulators-utility"
+      ],
+      "score": null,
+      "status": "validated",
+      "created_at": "2026-07-12T10:05:00-04:00"
+    },
+    {
+      "id": "r-regulators-related-seed",
+      "from_node_id": "n-regulators",
+      "to_node_id": "n-seed",
+      "kind": "related_topic",
+      "directed": false,
+      "method": "llm_inference",
+      "explanation": "Both sources discuss the same battery storage project; this is inferred relevance only.",
+      "evidence_ids": [
+        "ev-quote-regulators-topic",
+        "ev-quote-seed-topic"
+      ],
+      "score": null,
+      "status": "validated",
+      "created_at": "2026-07-12T10:05:00-04:00"
+    },
+    {
+      "id": "r-dateonly-references-grassroots",
+      "from_node_id": "n-dateonly",
+      "to_node_id": "n-grassroots",
+      "kind": "references",
+      "directed": true,
+      "method": "source_link",
+      "explanation": "The date-only article links to the neighborhood organizing post.",
+      "evidence_ids": [
+        "ev-link-dateonly-grassroots"
+      ],
+      "score": null,
+      "status": "validated",
+      "created_at": "2026-07-12T10:05:00-04:00"
+    },
+    {
+      "id": "r-local-related-seed",
+      "from_node_id": "n-local",
+      "to_node_id": "n-seed",
+      "kind": "related_topic",
+      "directed": false,
+      "method": "llm_inference",
+      "explanation": "The local opinion post is inferred to concern the same project.",
+      "evidence_ids": [
+        "ev-quote-local-topic",
+        "ev-quote-seed-topic"
+      ],
+      "score": null,
+      "status": "validated",
+      "created_at": "2026-07-12T10:05:00-04:00"
+    },
+    {
+      "id": "r-undated-references-grassroots",
+      "from_node_id": "n-undated",
+      "to_node_id": "n-grassroots",
+      "kind": "references",
+      "directed": true,
+      "method": "llm_inference",
+      "explanation": "A search snippet appears to reference the neighborhood organizing post; provisional only.",
+      "evidence_ids": [],
+      "score": null,
+      "status": "provisional",
+      "created_at": "2026-07-12T10:05:00-04:00"
+    },
+    {
+      "id": "r-blocked-links-utility",
+      "from_node_id": "n-blocked",
+      "to_node_id": "n-utility",
+      "kind": "links_to",
+      "directed": true,
+      "method": "source_link",
+      "explanation": "A search snippet for the unavailable FAQ appears to link to the fact sheet; provisional only.",
+      "evidence_ids": [],
+      "score": null,
+      "status": "provisional",
+      "created_at": "2026-07-12T10:05:00-04:00"
+    },
+    {
+      "id": "r-grassroots-links-agenda",
+      "from_node_id": "n-grassroots",
+      "to_node_id": "n-agenda",
+      "kind": "links_to",
+      "directed": true,
+      "method": "source_link",
+      "explanation": "The neighborhood post links back to the earlier planning board agenda.",
+      "evidence_ids": [
+        "ev-link-grassroots-agenda"
+      ],
+      "score": null,
+      "status": "validated",
+      "created_at": "2026-07-12T10:05:00-04:00"
+    }
+  ],
+  "coverage_notes": [
+    "Synthetic fixture only: no live search, page fetch, or model execution occurred.",
+    "The submitted source is a discovery seed, not a forced root.",
+    "Date-only and timezone-unknown sources remain outside the dated tree timeline."
+  ],
+  "warnings": [
+    "Synthetic demo data for the first milestone; not a live discovery result."
+  ]
+}

@@ -2,7 +2,11 @@
 
 Explore how a news story appeared and developed across posts, articles, and websites, then ask questions about the evidence.
 
-**Status:** Specification and repository bootstrap stage. Application code and a live deployment are not included with these documents. The first implementation milestone is defined in [FIRST_COMMIT_PROMPT.md](FIRST_COMMIT_PROMPT.md); completed capabilities and verified run commands must be added here as implementation progresses.
+**Status:** First milestone implemented — a fixture-backed chronological explorer. The browser loads a synthetic
+research graph through a FastAPI gateway and a real MCP server over Streamable HTTP. Live discovery, source fetching,
+durable research jobs, node questions, LLM orchestration, and citations are explicitly **not implemented yet**.
+See [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md) for the acceptance-by-acceptance boundary and
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for module and chronology decisions.
 
 ## What the product does
 
@@ -30,71 +34,204 @@ The submitted URL is a **discovery seed**, not necessarily the tree root. The ro
 |---|---|
 | [News_Graph_Implementation_Contract.md](News_Graph_Implementation_Contract.md) | Frontend behavior, chronological tree, node selection, questions, citations, and UI acceptance criteria |
 | [Question_Source_MCP_Agent_Contract.md](Question_Source_MCP_Agent_Contract.md) | Gateway/backend, MCP tools, discovery, source metadata, origin assessment, LLM tool use, persistence, and backend acceptance criteria |
-| [FIRST_COMMIT_PROMPT.md](FIRST_COMMIT_PROMPT.md) | Instructions for creating a focused first implementation commit |
 
 Use **version 2.1 or newer** of both contracts. Earlier versions assumed either a supplied backend, single-page-only analysis, or a tree rooted at the submitted source; those assumptions are superseded. Backend schemas own shared data contracts; the frontend contract owns UI behavior. Resolve conflicts explicitly instead of maintaining two incompatible types.
+
+## What is implemented in this milestone
+
+- Authoritative Pydantic shared models and a committed JSON Schema.
+- Generated frontend TypeScript DTOs from that schema (no hand-maintained copies).
+- Deterministic chronological projection with provenance-preserving uncertainty handling:
+  - seed and root are independent;
+  - old background and inaccessible sources are excluded from origin eligibility;
+  - equal/date-overlapping candidates produce a provisional origin;
+  - missing dates and timezones are preserved; no invented midnight UTC;
+  - unresolved chronology yields `root_node_id = null`;
+  - traced relationships are distinct from chronological-only placement;
+  - backward links and cycles remain cross-links;
+  - discovering an earlier source changes the root/revision but preserves node IDs.
+- A deterministic synthetic fixture with 16 initial sources (17 with the expanded stage), covering posts, news,
+  webpages, ties, date-only values, timezone-unknown local times, missing dates, unavailable content, duplicate
+  syndication, multiple citations, multiple parents, and a cycle.
+- A real official-SDK MCP server over Streamable HTTP exposing typed `get_research_graph` and `get_node_details`.
+- A FastAPI gateway that reaches MCP only through the official SDK client. Both read routes and honest
+  MCP-unavailable/live-mode errors are implemented.
+- A React/Vite fixture explorer with:
+  - a Cytoscape chronological tree plus an accessible outline/source list;
+  - honest publication labels and separate retrieval time;
+  - “Submitted source” and “Earliest evidence found” badges;
+  - time-uncertain/undated lane;
+  - cross-link display and a node detail panel;
+  - exactly-two-node A/B selection with clear/swap and explicit third-node replacement;
+  - responsive Tree / Sources / Ask tabs;
+  - a persistent “Synthetic demo” badge.
+- The node-question action is disabled with a specific “not implemented in this milestone” explanation. It does
+  not pretend to run.
+
+### Explicitly pending
+
+- Live search-provider and page-fetch adapters, extraction, and real discovery.
+- PostgreSQL persistence, Celery/Redis jobs, cancellation, recovery, and graph mutation.
+- Node expansion as a user-triggered job/UI flow.
+- Two-node LLM question jobs, MCP tool loops, validated citations, and additional-findings insertion.
+- Production authentication/ownership/CSRF and deployment.
+- Live acceptance credentials and the full 500-node/1,500-edge performance gate.
 
 ## Architecture
 
 ```mermaid
-flowchart TD
-    UI["Website"] --> GW["Gateway and MCP client"]
-    GW --> MCP["MCP research server"]
-    GW --> LLM["Server-side LLM orchestrator"]
-    LLM --> MCP
-    MCP --> DATA["Search, fetch, evidence, and jobs"]
-    DATA --> DB["PostgreSQL"]
+flowchart LR
+    UI["React website"] --> GW["FastAPI gateway"]
+    GW --> CLIENT["Official MCP SDK client"]
+    CLIENT --> MCP["MCP fixture server<br/>Streamable HTTP"]
+    MCP --> FIX["FixtureRepository"]
+    FIX --> PROJ["Chronological projection"]
 ```
 
-The browser uses an authenticated same-origin HTTP API. MCP is the constrained interface to research operations; search providers and source fetchers supply the data. The LLM can request node details, relationship evidence, related-source search, and candidate retrieval. It cannot execute arbitrary code or change the tree on its own.
+For this milestone, public browser routes are same-origin GETs. The gateway has no direct fixture access; the MCP
+read path is mandatory and tested. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full module table,
+SDK version, schema pipeline, chronology decisions, and security posture.
 
-## Proposed stack
-
-| Layer | Baseline |
-|---|---|
-| Frontend | React, TypeScript, Vite, hierarchical graph renderer such as Cytoscape.js |
-| Gateway/backend | Python, FastAPI, Pydantic |
-| MCP | Official SDK, Streamable HTTP |
-| Storage | PostgreSQL |
-| Background work | Celery and Redis |
-| Retrieval | Search-provider adapter, HTTP fetcher, Trafilatura extraction |
-| Analysis | Configurable LLM adapter with bounded tool calling |
-
-These are design choices. Pin and test compatible dependency versions during implementation; no specific unverified SDK API is prescribed here.
-
-## Planned repository layout
+## Repository layout
 
 | Path | Purpose |
 |---|---|
-| `apps/web/` | Frontend application |
-| `backend/src/news_trace/` | Gateway, MCP server, domain models, worker, and provider adapters |
-| `backend/tests/` | Backend and MCP integration tests |
-| `contracts/generated/` | Generated shared JSON Schema and frontend types |
-| `fixtures/` | Synthetic sources, relationships, timestamps, and expected answers |
-| `docs/` | Architecture decisions, implementation status, and operational notes |
-| `scripts/` | Verified development and schema-generation commands |
+| `apps/web/` | React/TypeScript/Vite frontend |
+| `backend/src/news_trace/` | Shared models, projection, fixture repository, MCP server/client, FastAPI gateway |
+| `backend/tests/` | Model/projection tests plus real MCP and gateway integration tests |
+| `contracts/generated/` | Generated JSON Schema and frontend types |
+| `fixtures/` | Synthetic deterministic research fixtures |
+| `docs/` | Architecture and implementation status |
+| `scripts/` | Contract generation, fixture startup, and verification helpers |
 
-The four Markdown documents supplied here belong at the repository root so their relative links work. Preserve an existing repository structure when adapting this plan.
+## Prerequisites
 
-## Getting started
+Verified in this environment:
 
-At this stage, place the two contracts, this README, and the first-commit prompt together in the intended repository and give the agent [FIRST_COMMIT_PROMPT.md](FIRST_COMMIT_PROMPT.md).
+- Python 3.14.7 (the backend requires Python 3.11 or newer)
+- [uv](https://docs.astral.sh/uv/) 0.13.8 (install with `python -m pip install uv` if it is not already available)
+- Node.js 24.22.1 and npm 11.19.1 (Vite requires Node 22.12 or newer; the jsdom 31 test dependency requires
+  Node 22.22.2 or newer on the 22.x line)
+- Windows PowerShell for the commands below; POSIX equivalents are shown where they differ
 
-The implementing agent must replace this paragraph with commands it actually verifies for dependency installation, fixture-mode startup, schema generation, tests, and production build. Do not document placeholder commands as if they already run.
+No paid provider credentials are required. Fixture mode is local and explicit.
 
-Fixture mode must be clearly labeled, work without paid credentials, and exercise the same data contracts as live mode. Live discovery requires configured search and LLM providers. Keep all credentials server-side in untracked environment files; commit only examples with safe placeholders.
+## Setup and run
 
-## Milestones
+1. Create local configuration:
 
-1. **First commit:** repository foundation, shared schemas, chronological projection tests, and a small working MCP-backed fixture explorer.
-2. **Research jobs:** persisted discovery, source extraction, origin tracing, expansion, and cancellation.
-3. **Two-node questions:** bounded LLM/MCP tool loop, evidence validation, citations, and additional findings.
-4. **Live release:** actual providers, ownership/access controls, failure recovery, browser checks, and acceptance evidence.
+   ```powershell
+   Copy-Item .env.example .env
+   ```
 
-The first commit is a foundation milestone, not a claim that the complete product passes all acceptance criteria. Track implemented, fixture-only, and pending behavior separately.
+   POSIX: `cp .env.example .env`
+
+   `.env` is ignored by Git. `.env.example` contains only safe local placeholders. Do not add provider keys to a
+   tracked file.
+
+2. Install backend dependencies and create the lockfile-based environment:
+
+   ```powershell
+   cd backend
+   uv sync
+   cd ..
+   ```
+
+   This creates `backend/.venv` from `backend/uv.lock`. The frontend lockfile is
+   `apps/web/package-lock.json`.
+
+3. Start the MCP server and gateway in one terminal:
+
+   ```powershell
+   uv run --project backend python scripts/run_fixture.py
+   ```
+
+   Expected local endpoints:
+
+   - gateway health: `http://127.0.0.1:8000/health`
+   - gateway API: `http://127.0.0.1:8000/api/v1/...`
+   - MCP Streamable HTTP: `http://127.0.0.1:8765/mcp`
+
+   Check health:
+
+   ```powershell
+   Invoke-RestMethod http://127.0.0.1:8000/health
+   ```
+
+   POSIX: `curl http://127.0.0.1:8000/health`
+
+4. In a second terminal, install frontend dependencies and start Vite:
+
+   ```powershell
+   npm --prefix apps/web install
+   npm --prefix apps/web run dev
+   ```
+
+   Open `http://127.0.0.1:5173`. Vite proxies `/api` and `/health` to the gateway, so the browser uses same-origin
+   requests. A persistent **Synthetic demo** badge identifies the fixture data.
+
+### Fixture entry point
+
+The frontend loads the documented fixture research id `fixture-riverbend` from:
+
+- `GET /api/v1/research/fixture-riverbend/graph`
+- `GET /api/v1/research/fixture-riverbend/nodes/{node_id}`
+
+There is no live research form in this milestone. If `VITE_FIXTURE_MODE` is not `true`, the UI shows an explicit
+“live research is not implemented” state rather than substituting fixture data. The fixture repository also exposes
+an expanded projection stage to tests; it demonstrates the April agenda arriving later and rerooting the graph
+without changing node IDs. That expansion is not a user-triggered job yet.
+
+## Checks
+
+Run from the repository root unless noted. Do not treat a check as passed unless the command completed successfully.
+
+```powershell
+# Backend models, projection, fixture, MCP-over-HTTP, and gateway tests
+uv run --project backend pytest -q
+
+# Shared JSON Schema is current
+uv run --project backend python scripts/generate_contracts.py --check
+
+# Regenerate frontend types; then confirm the committed file did not change
+npm --prefix apps/web run generate:types
+git diff --exit-code -- apps/web/src/generated/newsTraceContracts.ts
+
+# Frontend behavior tests, typecheck, and production build
+npm --prefix apps/web test
+npm --prefix apps/web run typecheck
+npm --prefix apps/web run build
+```
+
+Or run the convenience runner:
+
+```powershell
+uv run --project backend python scripts/check.py
+```
+
+The runner covers schema/type freshness, backend tests, frontend tests, typecheck, and the production build. It does
+not start servers. For the real-browser fixture check, start the backend and Vite dev server as described above,
+then run:
+
+```powershell
+npm --prefix apps/web run smoke:browser
+```
+
+The browser check uses the installed Microsoft Edge through `playwright-core`; it does not download a browser.
+
+The exact results for this commit are recorded in
+[docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md#verification-log).
 
 ## Product invariants
 
 Never fabricate source content, connections, publication dates, origin certainty, or citations. Keep credentials outside the browser. Validate outbound destinations and ownership before retrieval. Preserve citation snapshots and selected-node identity across graph updates. Treat search results and source content as untrusted data.
 
-The contracts contain the full requirements and release acceptance gates.
+## Milestones
+
+1. **First commit:** repository foundation, shared schemas, chronological projection tests, and a small working MCP-backed fixture explorer. **Implemented here, with the pending boundaries above.**
+2. **Research jobs:** persisted discovery, source extraction, origin tracing, expansion, and cancellation.
+3. **Two-node questions:** bounded LLM/MCP tool loop, evidence validation, citations, and additional findings.
+4. **Live release:** actual providers, ownership/access controls, failure recovery, browser checks, and acceptance evidence.
+
+The contracts contain the full requirements and release acceptance gates. The first milestone is a foundation, not
+a claim that the complete product passes all acceptance criteria.

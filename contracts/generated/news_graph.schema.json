@@ -1,0 +1,852 @@
+{
+  "$defs": {
+    "ContentKind": {
+      "enum": [
+        "post",
+        "news",
+        "webpage"
+      ],
+      "type": "string"
+    },
+    "ContentStatus": {
+      "enum": [
+        "full_text",
+        "excerpt",
+        "snippet_only",
+        "unavailable"
+      ],
+      "type": "string"
+    },
+    "ErrorCode": {
+      "enum": [
+        "INVALID_REQUEST",
+        "NOT_FOUND",
+        "VERSION_CONFLICT",
+        "IDEMPOTENCY_CONFLICT",
+        "SOURCE_URL_BLOCKED",
+        "SOURCE_ACCESS_DENIED",
+        "SOURCE_FETCH_FAILED",
+        "UNSUPPORTED_CONTENT",
+        "EXTRACTION_FAILED",
+        "SEARCH_NOT_CONFIGURED",
+        "SEARCH_UNAVAILABLE",
+        "PROVIDER_NOT_CONFIGURED",
+        "PROVIDER_UNAVAILABLE",
+        "INVALID_MODEL_OUTPUT",
+        "RATE_LIMITED",
+        "BUDGET_EXCEEDED",
+        "JOB_TIMEOUT",
+        "MCP_UNAVAILABLE",
+        "INTERNAL_ERROR"
+      ],
+      "type": "string"
+    },
+    "ErrorDetail": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/ErrorCode"
+        },
+        "message": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "retryable": {
+          "default": false,
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "code",
+        "message"
+      ],
+      "type": "object"
+    },
+    "ErrorEnvelope": {
+      "additionalProperties": false,
+      "properties": {
+        "error": {
+          "$ref": "#/$defs/ErrorDetail"
+        },
+        "request_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "error"
+      ],
+      "type": "object"
+    },
+    "Evidence": {
+      "additionalProperties": false,
+      "properties": {
+        "end": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/EvidenceKind"
+        },
+        "link_target": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "metadata_field": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "metadata_value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "node_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "type": "string"
+        },
+        "quote": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "retrieved_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "type": "string"
+        },
+        "start": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "id",
+        "node_id",
+        "snapshot_id",
+        "kind",
+        "retrieved_at"
+      ],
+      "type": "object"
+    },
+    "EvidenceKind": {
+      "enum": [
+        "text_quote",
+        "link",
+        "metadata",
+        "snippet",
+        "search_result"
+      ],
+      "type": "string"
+    },
+    "GraphLimits": {
+      "additionalProperties": false,
+      "properties": {
+        "max_nodes": {
+          "default": 500,
+          "maximum": 500,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "max_relationships": {
+          "default": 1500,
+          "maximum": 1500,
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "type": "object"
+    },
+    "GraphResult": {
+      "additionalProperties": false,
+      "properties": {
+        "cross_link_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "graph_revision": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "limits": {
+          "$ref": "#/$defs/GraphLimits"
+        },
+        "nodes": {
+          "items": {
+            "$ref": "#/$defs/SourceNode"
+          },
+          "type": "array"
+        },
+        "omitted_count": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "origin_assessment": {
+          "$ref": "#/$defs/OriginAssessment"
+        },
+        "relationships": {
+          "items": {
+            "$ref": "#/$defs/Relationship"
+          },
+          "type": "array"
+        },
+        "research_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "type": "string"
+        },
+        "root_node_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "seed_node_id": {
+          "type": "string"
+        },
+        "tree_edges": {
+          "items": {
+            "$ref": "#/$defs/TreeEdge"
+          },
+          "type": "array"
+        },
+        "truncated": {
+          "default": false,
+          "type": "boolean"
+        },
+        "undated_node_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "warnings": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "research_id",
+        "graph_revision",
+        "seed_node_id",
+        "root_node_id",
+        "origin_assessment",
+        "nodes",
+        "relationships",
+        "tree_edges"
+      ],
+      "type": "object"
+    },
+    "NodeDetails": {
+      "additionalProperties": false,
+      "properties": {
+        "coverage_notes": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/Evidence"
+          },
+          "type": "array"
+        },
+        "node": {
+          "$ref": "#/$defs/SourceNode"
+        },
+        "relationships": {
+          "items": {
+            "$ref": "#/$defs/Relationship"
+          },
+          "type": "array"
+        },
+        "research_id": {
+          "type": "string"
+        },
+        "snapshot": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SnapshotInfo"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "warnings": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "research_id",
+        "node"
+      ],
+      "type": "object"
+    },
+    "OriginAssessment": {
+      "additionalProperties": false,
+      "properties": {
+        "coverage_notes": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "earliest_candidate_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "rationale": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "searched_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/OriginStatus"
+        },
+        "timestamp_evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "status",
+        "rationale",
+        "searched_at"
+      ],
+      "type": "object"
+    },
+    "OriginStatus": {
+      "enum": [
+        "resolved_within_results",
+        "provisional",
+        "unresolved"
+      ],
+      "type": "string"
+    },
+    "Publication": {
+      "additionalProperties": false,
+      "description": "Publication metadata with explicit precision and timezone uncertainty.",
+      "properties": {
+        "date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "evidence_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "precision": {
+          "$ref": "#/$defs/PublicationPrecision"
+        },
+        "raw": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "timestamp": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "timezone_status": {
+          "$ref": "#/$defs/TimezoneStatus"
+        }
+      },
+      "required": [
+        "precision",
+        "timezone_status"
+      ],
+      "type": "object"
+    },
+    "PublicationPrecision": {
+      "enum": [
+        "timestamp",
+        "date",
+        "unknown"
+      ],
+      "type": "string"
+    },
+    "Relationship": {
+      "additionalProperties": false,
+      "properties": {
+        "created_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "directed": {
+          "type": "boolean"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "explanation": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "from_node_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/RelationshipKind"
+        },
+        "method": {
+          "$ref": "#/$defs/RelationshipMethod"
+        },
+        "score": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "status": {
+          "$ref": "#/$defs/RelationshipStatus"
+        },
+        "to_node_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "from_node_id",
+        "to_node_id",
+        "kind",
+        "directed",
+        "method",
+        "explanation",
+        "status",
+        "created_at"
+      ],
+      "type": "object"
+    },
+    "RelationshipKind": {
+      "enum": [
+        "links_to",
+        "references",
+        "replies_to",
+        "reposts",
+        "same_event",
+        "follows_up",
+        "related_topic"
+      ],
+      "type": "string"
+    },
+    "RelationshipMethod": {
+      "enum": [
+        "source_link",
+        "platform_metadata",
+        "llm_inference"
+      ],
+      "type": "string"
+    },
+    "RelationshipStatus": {
+      "enum": [
+        "validated",
+        "provisional"
+      ],
+      "type": "string"
+    },
+    "SnapshotInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "captured_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "content_hash": {
+          "type": "string"
+        },
+        "content_status": {
+          "$ref": "#/$defs/ContentStatus"
+        },
+        "excerpt": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "content_hash",
+        "captured_at",
+        "content_status"
+      ],
+      "type": "object"
+    },
+    "SourceInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "domain": {
+          "maxLength": 253,
+          "minLength": 1,
+          "type": "string"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "platform": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "domain"
+      ],
+      "type": "object"
+    },
+    "SourceNode": {
+      "additionalProperties": false,
+      "properties": {
+        "author": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "canonical_url": {
+          "type": "string"
+        },
+        "content_hash": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "content_kind": {
+          "$ref": "#/$defs/ContentKind"
+        },
+        "content_status": {
+          "$ref": "#/$defs/ContentStatus"
+        },
+        "discovered_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "excerpt": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "type": "string"
+        },
+        "publication": {
+          "$ref": "#/$defs/Publication"
+        },
+        "requested_url": {
+          "type": "string"
+        },
+        "research_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "type": "string"
+        },
+        "retrieved_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "source": {
+          "$ref": "#/$defs/SourceInfo"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "updated_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "warnings": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "research_id",
+        "content_kind",
+        "requested_url",
+        "canonical_url",
+        "source",
+        "publication",
+        "retrieved_at",
+        "discovered_at",
+        "content_status"
+      ],
+      "type": "object"
+    },
+    "TimezoneStatus": {
+      "enum": [
+        "known",
+        "unknown"
+      ],
+      "type": "string"
+    },
+    "TreeEdge": {
+      "additionalProperties": false,
+      "properties": {
+        "child_id": {
+          "type": "string"
+        },
+        "discovery_depth": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "parent_id": {
+          "type": "string"
+        },
+        "placement_kind": {
+          "$ref": "#/$defs/TreePlacementKind"
+        },
+        "relationship_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "parent_id",
+        "child_id",
+        "placement_kind",
+        "discovery_depth"
+      ],
+      "type": "object"
+    },
+    "TreePlacementKind": {
+      "enum": [
+        "traced_relationship",
+        "chronological_only"
+      ],
+      "type": "string"
+    }
+  },
+  "$id": "https://news-trace.local/contracts/news_graph.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Root type used only to generate the committed shared JSON Schema.",
+  "properties": {
+    "error_envelope": {
+      "$ref": "#/$defs/ErrorEnvelope"
+    },
+    "graph": {
+      "$ref": "#/$defs/GraphResult"
+    },
+    "node_details": {
+      "$ref": "#/$defs/NodeDetails"
+    }
+  },
+  "required": [
+    "graph",
+    "node_details",
+    "error_envelope"
+  ],
+  "title": "NewsTraceContracts",
+  "type": "object"
+}
