@@ -1,4 +1,5 @@
 import { useId } from 'react'
+import type { DemoTransport } from '../config'
 import type { GraphResult, SourceNode } from '../contracts/newsTrace'
 import { formatPublication, readPublicationInstant } from '../domain/format'
 import {
@@ -15,6 +16,8 @@ interface ResearchHeaderProps {
   seedNode: SourceNode | null
   rootNode: SourceNode | null
   fixture: boolean
+  transport: DemoTransport | null
+  demoNotice: string | null
   originNotice: string | null
   onNewResearch(): void
 }
@@ -60,6 +63,8 @@ export function ResearchHeader({
   seedNode,
   rootNode,
   fixture,
+  transport,
+  demoNotice,
   originNotice,
   onNewResearch,
 }: ResearchHeaderProps) {
@@ -77,6 +82,21 @@ export function ResearchHeader({
       : originStatus === 'unresolved'
         ? { label: 'Unresolved earliest candidate', className: 'badge-uncertain' }
         : { label: 'Earliest evidence found', className: 'badge-root' }
+
+  const fixtureBadgeLabel = fixture
+    ? transport === 'gateway'
+      ? 'Synthetic fixture · gateway'
+      : transport === 'bundled'
+        ? 'Synthetic fixture · bundled'
+        : 'Synthetic fixture'
+    : 'Live mode'
+  const fixtureBadgeTitle = fixture
+    ? transport === 'gateway'
+      ? 'Synthetic fixture data served read-only by the configured backend gateway. Demo jobs are not implemented in this milestone.'
+      : transport === 'bundled'
+        ? 'Bundled synthetic fixture data. No live search, page fetch, model execution, or backend request was performed.'
+        : 'Synthetic fixture data. No live search, page fetch, or model execution was performed.'
+    : 'Live gateway mode. Displayed data comes from the configured backend.'
 
   const statusLine =
     phase === 'loading'
@@ -101,13 +121,9 @@ export function ResearchHeader({
           </div>
           <span
             className={`badge ${fixture ? 'badge-provisional' : 'badge-neutral'}`}
-            title={
-              fixture
-                ? 'Synthetic fixture data. No live search, page fetch, or model execution was performed.'
-                : 'Live gateway mode. Displayed data comes from the configured backend.'
-            }
+            title={fixtureBadgeTitle}
           >
-            {fixture ? 'Synthetic fixture' : 'Live mode'}
+            {fixtureBadgeLabel}
           </span>
         </div>
 
@@ -115,6 +131,12 @@ export function ResearchHeader({
           {statusLine}
         </p>
       </div>
+
+      {demoNotice ? (
+        <p className="origin-notice" role="status">
+          {demoNotice}
+        </p>
+      ) : null}
 
       <dl className="header-facts">
         <div className="header-fact">

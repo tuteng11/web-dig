@@ -46,6 +46,23 @@ function pollDelay(): number {
     : VISIBLE_POLL_INTERVAL_MS;
 }
 
+export function highestEventSeq(events: readonly JobEvent[]): number {
+  let highest = 0;
+  for (const event of events) {
+    if (event.seq > highest) {
+      highest = event.seq;
+    }
+  }
+  return highest;
+}
+
+export function advanceEventCursor(
+  current: number,
+  events: readonly JobEvent[],
+): number {
+  return Math.max(current, highestEventSeq(events));
+}
+
 function mergeEvents(
   previous: readonly JobEvent[],
   incoming: readonly JobEvent[],
@@ -195,7 +212,7 @@ export function useJobPolling({
     let controller: AbortController | null = null;
     let afterEventSeq =
       starting !== null && starting.job_id === jobId
-        ? starting.next_event_seq
+        ? highestEventSeq(starting.events)
         : 0;
 
     const clearTimer = (): void => {
@@ -247,15 +264,7 @@ export function useJobPolling({
         if (cancelled || next.job_id !== jobId) {
           return;
         }
-        const responseHighest =
-          next.events.length > 0
-            ? Math.max(...next.events.map((event) => event.seq))
-            : 0;
-        afterEventSeq = Math.max(
-          afterEventSeq,
-          next.next_event_seq,
-          responseHighest,
-        );
+        afterEventSeq = advanceEventCursor(afterEventSeq, next.events);
         applyIncoming(next);
         if (!isTerminalJob(next)) {
           scheduleNext();

@@ -16,9 +16,9 @@ import sys
 from pathlib import Path
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
-WEB_ROOT = REPOSITORY_ROOT / "apps" / "web"
+LEGACY_WEB_ROOT = REPOSITORY_ROOT / "apps" / "web"
 BACKEND_ROOT = REPOSITORY_ROOT / "backend"
-GENERATED_TYPES = WEB_ROOT / "src" / "generated" / "newsTraceContracts.ts"
+GENERATED_TYPES = LEGACY_WEB_ROOT / "src" / "generated" / "newsTraceContracts.ts"
 
 
 def run(label: str, command: list[str], cwd: Path = REPOSITORY_ROOT) -> bool:
@@ -52,7 +52,7 @@ def main() -> int:
 
     before = GENERATED_TYPES.read_bytes() if GENERATED_TYPES.exists() else b""
     types_generated = run(
-        "frontend type generation",
+        "legacy frontend type generation",
         [npm, "--prefix", "apps/web", "run", "generate:types"],
     )
     after = GENERATED_TYPES.read_bytes() if GENERATED_TYPES.exists() else b""
@@ -62,7 +62,17 @@ def main() -> int:
             "\nFAILED: generated frontend types were stale; commit the regenerated file",
             file=sys.stderr,
         )
-    results.append(("generated frontend types current", types_current))
+    results.append(("generated legacy frontend types current", types_current))
+
+    results.append(
+        (
+            "new frontend shared DTOs current",
+            run(
+                "new frontend shared DTOs current",
+                [npm, "--prefix", "frontend", "run", "check:contracts"],
+            ),
+        )
+    )
 
     results.append(
         (
@@ -76,20 +86,47 @@ def main() -> int:
     )
     results.append(
         (
-            "frontend tests",
-            run("frontend tests", [npm, "--prefix", "apps/web", "test"]),
+            "legacy frontend tests",
+            run("legacy frontend tests", [npm, "--prefix", "apps/web", "test"]),
         )
     )
     results.append(
         (
-            "frontend typecheck",
-            run("frontend typecheck", [npm, "--prefix", "apps/web", "run", "typecheck"]),
+            "legacy frontend typecheck",
+            run(
+                "legacy frontend typecheck",
+                [npm, "--prefix", "apps/web", "run", "typecheck"],
+            ),
         )
     )
     results.append(
         (
-            "frontend production build",
-            run("frontend production build", [npm, "--prefix", "apps/web", "run", "build"]),
+            "legacy frontend production build",
+            run("legacy frontend production build", [npm, "--prefix", "apps/web", "run", "build"]),
+        )
+    )
+    results.append(
+        (
+            "new frontend tests",
+            run("new frontend tests", [npm, "--prefix", "frontend", "test"]),
+        )
+    )
+    results.append(
+        (
+            "new frontend typecheck",
+            run(
+                "new frontend typecheck",
+                [npm, "--prefix", "frontend", "run", "typecheck"],
+            ),
+        )
+    )
+    results.append(
+        (
+            "new frontend production build",
+            run(
+                "new frontend production build",
+                [npm, "--prefix", "frontend", "run", "build"],
+            ),
         )
     )
 

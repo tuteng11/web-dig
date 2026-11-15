@@ -5,12 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "tsc --noEmit && vite build && node scripts/check-build-env.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "sync:contracts": "node scripts/sync-contracts.mjs",
     "check:contracts": "node scripts/sync-contracts.mjs --check",
     "smoke:browser": "node scripts/browser-smoke.mjs",
+    "smoke:browser:gateway": "node scripts/browser-smoke.mjs --gateway",
     "preview": "vite preview"
   },
   "dependencies": {

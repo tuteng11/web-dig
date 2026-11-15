@@ -19,6 +19,12 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from news_trace.api_contracts import (
+    AddDiscoveriesRequest,
+    AskQuestionRequest,
+    ExpandNodeRequest,
+    StartResearchRequest,
+)
 from news_trace.config import Settings
 from news_trace.mcp_client import (
     MCPClient,
@@ -46,6 +52,11 @@ PROVIDER_NOT_CONFIGURED_MESSAGE = (
     "Live research is not implemented in this milestone. "
     "Start the gateway with NEWS_TRACE_MODE=fixture to use the synthetic fixture."
 )
+RESEARCH_JOBS_NOT_IMPLEMENTED_MESSAGE = (
+    "Research jobs and graph mutations are not implemented in this milestone. "
+    "The synthetic demo is read-only; no job was created."
+)
+JOB_NOT_FOUND_MESSAGE = "No research job with that id exists in this milestone."
 MCP_UNAVAILABLE_MESSAGE = "The research data service is unavailable."
 NOT_FOUND_MESSAGE = "The requested research object was not found."
 INVALID_MCP_RESULT_MESSAGE = "The research data service returned an invalid response."
@@ -74,6 +85,24 @@ def _provider_not_configured() -> JSONResponse:
         503,
         ErrorCode.PROVIDER_NOT_CONFIGURED,
         PROVIDER_NOT_CONFIGURED_MESSAGE,
+        retryable=False,
+    )
+
+
+def _research_jobs_not_implemented() -> JSONResponse:
+    return _envelope_response(
+        503,
+        ErrorCode.PROVIDER_NOT_CONFIGURED,
+        RESEARCH_JOBS_NOT_IMPLEMENTED_MESSAGE,
+        retryable=False,
+    )
+
+
+def _job_not_found() -> JSONResponse:
+    return _envelope_response(
+        404,
+        ErrorCode.NOT_FOUND,
+        JOB_NOT_FOUND_MESSAGE,
         retryable=False,
     )
 
@@ -258,6 +287,54 @@ def create_app(
                 INTERNAL_ERROR_MESSAGE,
                 retryable=False,
             )
+
+    # The frontend already calls these routes. No job store or mutation
+    # implementation exists in this milestone, so validate the typed request and
+    # answer honestly instead of returning a fabricated job. Read routes above
+    # remain the MCP-backed implementation.
+    @app.post(f"{API_PREFIX}/research")
+    async def start_research(payload: StartResearchRequest) -> JSONResponse:
+        _ = payload
+        return _research_jobs_not_implemented()
+
+    @app.post(f"{API_PREFIX}/research/{{research_id}}/expand")
+    async def expand_research_node(
+        payload: ExpandNodeRequest,
+        research_id: str = Path(min_length=1, max_length=200),
+    ) -> JSONResponse:
+        _ = payload, research_id
+        return _research_jobs_not_implemented()
+
+    @app.post(f"{API_PREFIX}/research/{{research_id}}/questions")
+    async def ask_research_question(
+        payload: AskQuestionRequest,
+        research_id: str = Path(min_length=1, max_length=200),
+    ) -> JSONResponse:
+        _ = payload, research_id
+        return _research_jobs_not_implemented()
+
+    @app.post(f"{API_PREFIX}/research/{{research_id}}/discoveries")
+    async def add_research_discoveries(
+        payload: AddDiscoveriesRequest,
+        research_id: str = Path(min_length=1, max_length=200),
+    ) -> JSONResponse:
+        _ = payload, research_id
+        return _research_jobs_not_implemented()
+
+    @app.get(f"{API_PREFIX}/jobs/{{job_id}}")
+    async def get_research_job(
+        job_id: str = Path(min_length=1, max_length=200),
+        after_event_seq: int | None = Query(default=None, ge=0),
+    ) -> JSONResponse:
+        _ = job_id, after_event_seq
+        return _job_not_found()
+
+    @app.post(f"{API_PREFIX}/jobs/{{job_id}}/cancel")
+    async def cancel_research_job(
+        job_id: str = Path(min_length=1, max_length=200),
+    ) -> JSONResponse:
+        _ = job_id
+        return _job_not_found()
 
     return app
 

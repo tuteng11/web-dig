@@ -138,7 +138,7 @@ def _validate_http_url(value: str) -> str:
     parsed = urlparse(value)
     if parsed.scheme not in {"http", "https"} or not parsed.hostname:
         raise ValueError("URL must be an absolute http(s) URL")
-    if parsed.username or parsed.password:
+    if parsed.username is not None or parsed.password is not None:
         raise ValueError("URL must not contain userinfo")
     try:
         parsed.port

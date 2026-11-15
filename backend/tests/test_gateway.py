@@ -24,6 +24,9 @@ from transport_helpers import allocate_free_loopback_port, running_fixture_mcp_s
 
 GRAPH_PATH = "/api/v1/research/fixture-riverbend/graph"
 NODE_PATH = "/api/v1/research/fixture-riverbend/nodes"
+PREVIEW_HOST = "127.0.0.1:4173"
+PREVIEW_ORIGIN = "http://127.0.0.1:4173"
+REQUEST_ID = "6f1c1f3e-5a2b-4c8d-9e0f-1234567890ab"
 
 
 @pytest.fixture(scope="session")
@@ -36,8 +39,8 @@ def make_settings(
     mcp_url: str,
     *,
     mode: str = "fixture",
-    allowed_hosts: tuple[str, ...] = ("testserver",),
-    allowed_origins: tuple[str, ...] = ("http://testserver",),
+    allowed_hosts: tuple[str, ...] = ("testserver", PREVIEW_HOST),
+    allowed_origins: tuple[str, ...] = ("http://testserver", PREVIEW_ORIGIN),
 ) -> Settings:
     base = Settings.from_env()
     return replace(
@@ -223,3 +226,302 @@ def test_gateway_validation_and_unmatched_routes_use_safe_envelopes(
         ErrorEnvelope.model_validate(missing_route.json()).error.code
         is ErrorCode.NOT_FOUND
     )
+
+
+def test_gateway_research_mutations_are_typed_not_implemented_stubs(
+    mcp_server_process,
+) -> None:
+    settings = make_settings(mcp_server_process.url)
+    app = create_app(settings)
+    with TestClient(app, base_url="http://testserver") as client:
+        responses = [
+            client.post(
+                "/api/v1/research",
+                json={
+                    "question": "What happened in Riverbend?",
+                    "source_url": "https://example.com/riverbend",
+                    "request_id": REQUEST_ID,
+                },
+            ),
+            client.post(
+                "/api/v1/research/research-1/expand",
+                json={
+                    "node_id": "n-seed",
+                    "graph_revision": 1,
+                    "request_id": REQUEST_ID,
+                },
+            ),
+            client.post(
+                "/api/v1/research/research-1/questions",
+                json={
+                    "node_ids": ["n-seed", "n-grassroots"],
+                    "graph_revision": 1,
+                    "question": "How are these two linked?",
+                    "request_id": REQUEST_ID,
+                },
+            ),
+            client.post(
+                "/api/v1/research/research-1/discoveries",
+                json={
+                    "answer_id": "answer-1",
+                    "candidate_ids": ["candidate-1", "candidate-2"],
+                    "graph_revision": 1,
+                    "request_id": REQUEST_ID,
+                },
+            ),
+        ]
+
+    for response in responses:
+        assert response.status_code == 503
+        assert response.headers["cache-control"] == "no-store"
+        envelope = ErrorEnvelope.model_validate(response.json())
+        assert envelope.error.code is ErrorCode.PROVIDER_NOT_CONFIGURED
+        assert envelope.error.retryable is False
+        assert "not implemented" in envelope.error.message.lower()
+        assert "fixture mode" not in envelope.error.message.lower()
+
+
+def test_gateway_job_stubs_never_call_mcp() -> None:
+    class ExplodingClient:
+        async def get_graph(self, research_id: str):
+            raise AssertionError(f"stub called get_graph for {research_id}")
+
+        async def get_node_details(
+            self,
+            research_id: str,
+            node_id: str,
+            detail_query: str | None = None,
+        ):
+            raise AssertionError(
+                f"stub called get_node_details for {research_id}/{node_id}"
+            )
+
+    settings = make_settings("http://127.0.0.1:1/mcp")
+    app = create_app(settings, client=ExplodingClient())
+    with TestClient(app, base_url="http://testserver") as client:
+        responses = [
+            client.post(
+                "/api/v1/research",
+                json={
+                    "question": "What happened in Riverbend?",
+                    "source_url": "https://example.com/riverbend",
+                    "request_id": REQUEST_ID,
+                },
+            ),
+            client.post(
+                "/api/v1/research/research-1/expand",
+                json={
+                    "node_id": "n-seed",
+                    "graph_revision": 1,
+                    "request_id": REQUEST_ID,
+                },
+            ),
+            client.post(
+                "/api/v1/research/research-1/questions",
+                json={
+                    "node_ids": ["n-seed", "n-grassroots"],
+                    "graph_revision": 1,
+                    "question": "How are these two linked?",
+                    "request_id": REQUEST_ID,
+                },
+            ),
+            client.post(
+                "/api/v1/research/research-1/discoveries",
+                json={
+                    "answer_id": "answer-1",
+                    "candidate_ids": ["candidate-1"],
+                    "graph_revision": 1,
+                    "request_id": REQUEST_ID,
+                },
+            ),
+            client.get("/api/v1/jobs/job-1"),
+            client.post("/api/v1/jobs/job-1/cancel"),
+        ]
+
+    assert [response.status_code for response in responses] == [
+        503,
+        503,
+        503,
+        503,
+        404,
+        404,
+    ]
+
+
+def test_gateway_job_routes_report_missing_jobs(mcp_server_process) -> None:
+    settings = make_settings(mcp_server_process.url)
+    app = create_app(settings)
+    with TestClient(app, base_url="http://testserver") as client:
+        job_response = client.get("/api/v1/jobs/job-1")
+        cursor_response = client.get(
+            "/api/v1/jobs/job-1",
+            params={"after_event_seq": 7},
+        )
+        cancel_response = client.post("/api/v1/jobs/job-1/cancel")
+        bad_cursor = client.get(
+            "/api/v1/jobs/job-1",
+            params={"after_event_seq": -1},
+        )
+
+    for response in (job_response, cursor_response, cancel_response):
+        assert response.status_code == 404
+        assert response.headers["cache-control"] == "no-store"
+        envelope = ErrorEnvelope.model_validate(response.json())
+        assert envelope.error.code is ErrorCode.NOT_FOUND
+        assert envelope.error.retryable is False
+        assert "job" in envelope.error.message.lower()
+
+    assert bad_cursor.status_code == 422
+    assert (
+        ErrorEnvelope.model_validate(bad_cursor.json()).error.code
+        is ErrorCode.INVALID_REQUEST
+    )
+
+
+def test_gateway_mutation_stubs_reject_invalid_bodies_safely(
+    mcp_server_process,
+) -> None:
+    settings = make_settings(mcp_server_process.url)
+    app = create_app(settings)
+    valid_start = {
+        "question": "What happened in Riverbend?",
+        "source_url": "https://example.com/riverbend",
+        "request_id": REQUEST_ID,
+    }
+    with TestClient(app, base_url="http://testserver") as client:
+        responses = [
+            client.post(
+                "/api/v1/research",
+                json={**valid_start, "request_id": "not-a-uuid"},
+            ),
+            client.post(
+                "/api/v1/research",
+                json={**valid_start, "question": "   "},
+            ),
+            client.post(
+                "/api/v1/research",
+                json={**valid_start, "extra_field": True},
+            ),
+            client.post(
+                "/api/v1/research",
+                json={
+                    **valid_start,
+                    "source_url": "https://user:secret@example.com/riverbend",
+                },
+            ),
+            client.post(
+                "/api/v1/research",
+                json={
+                    **valid_start,
+                    "source_url": "https://@example.com/riverbend",
+                },
+            ),
+            client.post(
+                "/api/v1/research/research-1/questions",
+                json={
+                    "node_ids": ["n-seed", "n-seed"],
+                    "graph_revision": 1,
+                    "question": "How are these two linked?",
+                    "request_id": REQUEST_ID,
+                },
+            ),
+            client.post(
+                "/api/v1/research/research-1/questions",
+                json={
+                    "node_ids": ["n-seed"],
+                    "graph_revision": 1,
+                    "question": "How are these two linked?",
+                    "request_id": REQUEST_ID,
+                },
+            ),
+            client.post(
+                "/api/v1/research/research-1/discoveries",
+                json={
+                    "answer_id": "answer-1",
+                    "candidate_ids": [],
+                    "graph_revision": 1,
+                    "request_id": REQUEST_ID,
+                },
+            ),
+            client.post(
+                "/api/v1/research/research-1/expand",
+                json={
+                    "node_id": "n-seed",
+                    "graph_revision": 0,
+                    "request_id": REQUEST_ID,
+                },
+            ),
+            client.post(
+                "/api/v1/research/research-1/expand",
+                json={
+                    "node_id": "n-seed",
+                    "graph_revision": True,
+                    "request_id": REQUEST_ID,
+                },
+            ),
+            client.post(
+                "/api/v1/research/research-1/questions",
+                json={
+                    "node_ids": ["n-seed", "n-grassroots"],
+                    "graph_revision": "1",
+                    "question": "How are these two linked?",
+                    "request_id": REQUEST_ID,
+                },
+            ),
+            client.post(
+                "/api/v1/research/research-1/discoveries",
+                json={
+                    "answer_id": "answer-1",
+                    "candidate_ids": ["candidate-1"],
+                    "graph_revision": True,
+                    "request_id": REQUEST_ID,
+                },
+            ),
+            client.post(
+                f"/api/v1/research/{'x' * 201}/expand",
+                json={
+                    "node_id": "n-seed",
+                    "graph_revision": 1,
+                    "request_id": REQUEST_ID,
+                },
+            ),
+            client.get(f"/api/v1/jobs/{'x' * 201}"),
+        ]
+
+    for response in responses:
+        assert response.status_code == 422
+        assert response.headers["cache-control"] == "no-store"
+        body = response.json()
+        assert "detail" not in body
+        envelope = ErrorEnvelope.model_validate(body)
+        assert envelope.error.code is ErrorCode.INVALID_REQUEST
+        assert envelope.error.retryable is False
+        assert envelope.error.message == "The request parameters are invalid."
+
+
+def test_gateway_allows_preview_origin_4173(mcp_server_process) -> None:
+    settings = make_settings(mcp_server_process.url)
+    app = create_app(settings)
+    with TestClient(app, base_url=PREVIEW_ORIGIN) as client:
+        response = client.get(
+            GRAPH_PATH,
+            headers={
+                "host": PREVIEW_HOST,
+                "origin": PREVIEW_ORIGIN,
+            },
+        )
+
+    assert response.status_code == 200
+    assert response.headers["cache-control"] == "no-store"
+    graph = GraphResult.model_validate(response.json())
+    assert graph.research_id == "fixture-riverbend"
+
+
+def test_settings_default_origins_include_preview_port(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("NEWS_TRACE_ALLOWED_ORIGINS", raising=False)
+    settings = Settings.from_env()
+
+    assert "http://127.0.0.1:4173" in settings.allowed_origins
+    assert "http://localhost:4173" in settings.allowed_origins

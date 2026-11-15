@@ -21,6 +21,11 @@ Browser (React/Vite)
 The browser never talks to MCP directly, the gateway never imports fixture data directly, and no live search,
 page fetch, LLM call, or graph mutation is presented as working. Fixture mode is explicit and visibly labeled.
 
+The new `frontend/` Traceback UI loads its synthetic demo graph and node details through this same gateway/MCP
+read path by default. Its bundled offline adapter remains available only through an explicit transport selection.
+Discovery, job, expansion, question, and additional-discovery routes are explicit typed `503`/`404` stubs in this
+milestone; they do not fabricate jobs, answers, or graph mutations.
+
 ## Module boundaries
 
 | Path | Responsibility |
@@ -31,11 +36,15 @@ page fetch, LLM call, or graph mutation is presented as working. Fixture mode is
 | `backend/src/news_trace/fixture_service.py` | Read-only fixture repository and expansion-stage projection for tests |
 | `backend/src/news_trace/mcp_server.py` | Official-SDK MCP server exposing `get_research_graph` and `get_node_details` over Streamable HTTP |
 | `backend/src/news_trace/mcp_client.py` | Official-SDK MCP client, structured-output validation, typed transport/tool errors |
-| `backend/src/news_trace/gateway.py` | FastAPI read routes, error mapping, Host/Origin checks, loopback startup |
+| `backend/src/news_trace/api_contracts.py` | Strict request models for job/mutation route stubs; not part of the generated shared schema |
+| `backend/src/news_trace/gateway.py` | FastAPI read routes, typed job-route stubs, error mapping, Host/Origin checks, loopback startup |
 | `backend/src/news_trace/config.py` | Environment configuration and loopback defaults |
-| `apps/web/src/api/` | Typed gateway client and response validation |
+| `frontend/src/api/` | New UI typed gateway client, live polling, and explicit bundled fixture adapter |
+| `frontend/src/contracts/` | DTOs synchronized from the generated shared contracts plus hand-written HTTP job shapes |
+| `frontend/src/components/` | New Traceback explorer; no transport logic in renderers |
+| `apps/web/src/api/` | Legacy typed gateway client and response validation |
 | `apps/web/src/generated/` | Generated TypeScript DTOs (committed, never hand-edited) |
-| `apps/web/src/components/` | Explorer UI; no transport logic in renderers |
+| `apps/web/src/components/` | Legacy Cytoscape explorer |
 | `fixtures/riverbend_fixture.json` | Deterministic synthetic 16-node initial graph plus expanded-stage case |
 | `contracts/generated/news_graph.schema.json` | Generated JSON Schema from the authoritative Pydantic models |
 
@@ -137,12 +146,28 @@ The initial fixture contains 16 sources across posts, news, and webpages. It cov
   silently falling back to fixtures.
 - Source text is rendered as React text, not HTML. External links use `rel="noreferrer noopener"`.
 
+## New-frontend demo transport
+
+The new UI separates synthetic provenance from transport:
+
+| Transport | Selection | Behaviour |
+|---|---|---|
+| Gateway | Default; `VITE_DEMO_TRANSPORT=gateway` | Graph and node details cross the same gateway → MCP read path. Job/mutation routes return typed `503` stubs. |
+| Bundled | `VITE_DEMO_TRANSPORT=bundled`, legacy `VITE_FIXTURE_MODE=true`, or `?demo=1&transport=bundled` | Full local synthetic simulation with zero `/api/v1` calls. |
+
+A valid URL transport wins for the fixture research id and is persisted in the URL so reload never silently
+switches transports. Non-fixture research ids always use the gateway. No automatic fallback to bundled data occurs
+on a gateway failure.
+
 ## Known limitations / next milestone
 
 - No live search-provider or page-fetch adapter; no SSRF/enforcing-egress implementation yet.
-- No PostgreSQL persistence, Celery/Redis jobs, cancellation, or graph mutation.
-- No node expansion UI/job; the expanded projection exists only as a tested fixture stage.
-- No LLM orchestration, two-node question execution, citations, or additional-findings flow.
+- No PostgreSQL persistence, Celery/Redis jobs, cancellation, or graph mutation. The new frontend's job/mutation
+  routes are explicit contract stubs rather than implementations.
+- No backend node-expansion job; the bundled demo simulates expansion and rerooting, while the gateway demo serves
+  the tested fixture revision 1 only.
+- No backend LLM orchestration, two-node question execution, citations, or additional-findings flow. The bundled demo
+  simulates these interactions client-side; the gateway routes are explicit typed stubs.
 - No production authentication/ownership model.
 - The 500-node/1,500-relationship interactive cap has model limits and explicit node truncation checks, but no
   performance benchmark or full graph-cap UI yet. Relationship-cap overflow raises an explicit projection error

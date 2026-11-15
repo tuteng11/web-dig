@@ -36,8 +36,18 @@ import {
   type NewsTraceClient,
 } from './api/gateway'
 import { createFixtureClient } from './api/fixture'
-import { readRuntimeConfig } from './config'
+import {
+  parseDemoTransport,
+  readRuntimeConfig,
+  type DemoTransport,
+} from './config'
 import { buildChronologicalLayout } from './domain/layout'
+import { jobResponseMismatch } from './domain/jobResponses'
+import {
+  createMutationIdTracker,
+  createSubmissionGate,
+  mutationSignature,
+} from './domain/mutationGate'
 import {
   EMPTY_FILTERS,
   filterGraphNodes,
@@ -73,6 +83,9 @@ type SelectionSlot = 'a' | 'b'
 type JobPurpose = 'start' | 'expand' | 'question' | 'add_discoveries'
 type GraphPhase = 'idle' | 'loading' | 'ready' | 'error'
 
+const GATEWAY_DEMO_NOTICE =
+  'Graph and node details come from the backend fixture through MCP. Expansion, question, and additional-discovery jobs are not implemented in this milestone, so this demo is read-only.'
+
 interface PairSelection {
   a: string | null
   b: string | null
@@ -83,6 +96,7 @@ interface SessionInfo {
   question: string
   sourceUrl: string | null
   fixture: boolean
+  transport: DemoTransport | null
 }
 
 interface ActiveJob {
@@ -116,10 +130,21 @@ interface AnswerRecord {
 interface GraphRequest {
   researchId: string
   fixture: boolean
+  transport: DemoTransport
   question: string
   sourceUrl: string | null
   resetWorkspace: boolean
   minRevision?: number
+}
+
+function transportForSession(
+  session: SessionInfo | null,
+  fallback: DemoTransport,
+): DemoTransport {
+  if (!session || !session.fixture) {
+    return 'gateway'
+  }
+  return session.transport ?? fallback
 }
 
 function jobView(job: JobEnvelope): JobView {
@@ -160,6 +185,16 @@ function jobError(job: JobEnvelope, fallback: string): UiError {
     code: job.status === 'cancelled' ? 'JOB_CANCELLED' : 'JOB_FAILED',
     message: fallback,
     retryable: job.status !== 'cancelled',
+    requestId: null,
+    details: [],
+  }
+}
+
+function malformedResponse(message: string): UiError {
+  return {
+    code: 'MALFORMED_RESPONSE',
+    message,
+    retryable: false,
     requestId: null,
     details: [],
   }
@@ -266,10 +301,17 @@ export default function App() {
     answer: AnswerResult
     activeCitationId: string | null
   } | null>(null)
+  const [startSubmitting, setStartSubmitting] = useState(false)
+  const [questionSubmitting, setQuestionSubmitting] = useState(false)
+  const [expandSubmitting, setExpandSubmitting] = useState(false)
+  const [addSubmitting, setAddSubmitting] = useState(false)
 
   const graphRef = useRef<GraphResult | null>(null)
   const sessionRef = useRef<SessionInfo | null>(null)
   const activeJobRef = useRef<ActiveJob | null>(null)
+  const submissionGateRef = useRef(createSubmissionGate())
+  const mutationIdsRef = useRef(createMutationIdTracker(newRequestId))
+  const sessionEpochRef = useRef(0)
   const finishedJobsRef = useRef<Set<string>>(new Set())
   const graphAbortRef = useRef<AbortController | null>(null)
   const lastGraphRequestRef = useRef<GraphRequest | null>(null)
@@ -289,7 +331,25 @@ export default function App() {
   sessionRef.current = session
   activeJobRef.current = activeJob
 
-  const client = session?.fixture ? fixtureClient : liveClient
+  const reportPurposeError = useCallback(
+    (purpose: JobPurpose, error: UiError) => {
+      if (purpose === 'start') {
+        setStartError(error)
+      } else if (purpose === 'question') {
+        setQuestionError(error)
+      } else if (purpose === 'expand') {
+        setExpandError(error)
+      } else {
+        setAddError(error)
+      }
+    },
+    [],
+  )
+
+  const client =
+    session !== null && session.fixture && session.transport === 'bundled'
+      ? fixtureClient
+      : liveClient
 
   const seedNode = graph
     ? graph.nodes.find((node) => node.id === graph.seed_node_id) ?? null
@@ -358,10 +418,13 @@ export default function App() {
 
   const loadGraph = useCallback(
     async (request: GraphRequest): Promise<GraphResult | null> => {
+      const epoch = sessionEpochRef.current
       graphAbortRef.current?.abort()
       const controller = new AbortController()
       graphAbortRef.current = controller
       lastGraphRequestRef.current = request
+      const isStale = () =>
+        controller.signal.aborted || sessionEpochRef.current !== epoch
       setGraphPhase('loading')
       setGraphError(null)
       if (request.resetWorkspace) {
@@ -379,13 +442,16 @@ export default function App() {
         setShowAllNodes(false)
       }
 
-      const requestClient = request.fixture ? fixtureClient : liveClient
+      const requestClient =
+        request.fixture && request.transport === 'bundled'
+          ? fixtureClient
+          : liveClient
       try {
         const raw = await requestClient.getGraph(
           request.researchId,
           controller.signal,
         )
-        if (controller.signal.aborted) {
+        if (isStale()) {
           return null
         }
         const validation = validateGraphResult(raw, request.researchId)
@@ -395,40 +461,51 @@ export default function App() {
           return null
         }
         let nextGraph = validation.value
+        let gatewayRevisionNotice: string | null = null
         if (
           request.fixture &&
           typeof request.minRevision === 'number' &&
           nextGraph.graph_revision < request.minRevision
         ) {
-          try {
-            const expansion = await requestClient.expandNode(
-              request.researchId,
-              {
-                node_id: nextGraph.seed_node_id,
-                graph_revision: nextGraph.graph_revision,
-                request_id: newRequestId(),
-              },
-              controller.signal,
-            )
-            if (expansion.status === 'completed' && !controller.signal.aborted) {
-              const refreshed = await requestClient.getGraph(
+          if (request.transport === 'bundled') {
+            try {
+              const expansion = await requestClient.expandNode(
                 request.researchId,
+                {
+                  node_id: nextGraph.seed_node_id,
+                  graph_revision: nextGraph.graph_revision,
+                  request_id: newRequestId(),
+                },
                 controller.signal,
               )
-              const revalidation = validateGraphResult(
-                refreshed,
-                request.researchId,
-              )
-              if (revalidation.ok) {
-                nextGraph = revalidation.value
+              if (isStale()) {
+                return null
               }
+              if (expansion.status === 'completed') {
+                const refreshed = await requestClient.getGraph(
+                  request.researchId,
+                  controller.signal,
+                )
+                if (isStale()) {
+                  return null
+                }
+                const revalidation = validateGraphResult(
+                  refreshed,
+                  request.researchId,
+                )
+                if (revalidation.ok) {
+                  nextGraph = revalidation.value
+                }
+              }
+            } catch {
+              // Resume best-effort: an unavailable expansion keeps the current
+              // revision and never invents nodes.
             }
-          } catch {
-            // Resume best-effort: an unavailable expansion keeps the current
-            // revision and never invents nodes.
+          } else {
+            gatewayRevisionNotice = `The read-only gateway demo serves graph revision ${nextGraph.graph_revision}, but this link requested revision ${request.minRevision}. Expansion is not implemented for the gateway transport, so no bundled fallback was substituted.`
           }
         }
-        if (controller.signal.aborted) {
+        if (isStale()) {
           return null
         }
         if (
@@ -441,16 +518,20 @@ export default function App() {
         }
         setGraph(nextGraph)
         setGraphPhase('ready')
+        if (gatewayRevisionNotice !== null) {
+          setOriginNotice(gatewayRevisionNotice)
+        }
         setSession({
           researchId: request.researchId,
           question: request.question,
           sourceUrl: request.sourceUrl,
           fixture: request.fixture,
+          transport: request.fixture ? request.transport : null,
         })
         setMobileTab('tree')
         return nextGraph
       } catch (error) {
-        if (controller.signal.aborted) {
+        if (isStale()) {
           return null
         }
         setGraphPhase('error')
@@ -464,12 +545,23 @@ export default function App() {
   )
 
   const loadDemo = useCallback(
-    async (minRevision = 1) => {
+    async (
+      transport: DemoTransport = config.demoTransport,
+      minRevision = 1,
+    ) => {
+      sessionEpochRef.current += 1
+      submissionGateRef.current.reset()
+      mutationIdsRef.current.clear()
+      setStartSubmitting(false)
+      setQuestionSubmitting(false)
+      setExpandSubmitting(false)
+      setAddSubmitting(false)
       setStartError(null)
       setFormNotice(null)
       const nextGraph = await loadGraph({
         researchId: config.fixtureResearchId,
         fixture: true,
+        transport,
         question: 'Synthetic demo — Riverbend battery storage case',
         sourceUrl: null,
         resetWorkspace: true,
@@ -486,67 +578,112 @@ export default function App() {
         )
       }
     },
-    [config.fixtureResearchId, loadGraph],
+    [config.demoTransport, config.fixtureResearchId, loadGraph],
   )
 
   const submitLive = useCallback(
     async (input: { question: string; sourceUrl: string }) => {
-      setStartError(null)
-      setFormNotice(null)
-      setAnswers([])
-      setSelectedNodeId(null)
-      setSelection({ a: null, b: null })
-      setPendingNodeId(null)
-      setDetailState({ status: 'idle' })
-      setOriginNotice(null)
-      setQuestionError(null)
-      setExpandError(null)
-      setAddError(null)
-      setCandidateSelections({})
-      setFilters(EMPTY_FILTERS)
-
-      if (config.mode === 'fixture') {
-        setFormNotice(
-          'Live discovery is unavailable while the synthetic fixture adapter is active. Use “Load synthetic Riverbend demo” to explore the contract UI, or set VITE_FIXTURE_MODE=false and connect the gateway for live research.',
-        )
+      if (activeJobRef.current) {
         return
       }
-
-      const requestId = newRequestId()
+      const gate = submissionGateRef.current
+      const token = gate.begin()
+      if (token === null) {
+        return
+      }
+      setStartSubmitting(true)
       try {
-        const job = await liveClient.startResearch(
-          {
-            question: input.question,
-            source_url: input.sourceUrl,
-            request_id: requestId,
-          },
-          undefined,
-        )
-        const active: ActiveJob = {
-          purpose: 'start',
-          context: {
-            researchId: job.research_id,
-            question: input.question,
-            sourceUrl: input.sourceUrl,
-          },
-          view: jobView(job),
-          raw: job,
+        setStartError(null)
+        setFormNotice(null)
+        setAnswers([])
+        setSelectedNodeId(null)
+        setSelection({ a: null, b: null })
+        setPendingNodeId(null)
+        setDetailState({ status: 'idle' })
+        setOriginNotice(null)
+        setQuestionError(null)
+        setExpandError(null)
+        setAddError(null)
+        setCandidateSelections({})
+        setFilters(EMPTY_FILTERS)
+
+        if (config.mode === 'fixture') {
+          setFormNotice(
+            'Live discovery is unavailable while fixture mode is active. Use “Load synthetic Riverbend demo” to explore the demo, or set VITE_FIXTURE_MODE=false and connect the gateway for live research.',
+          )
+          return
         }
-        setActiveJob(active)
-        activeJobRef.current = active
-        if (isTerminalJob(job)) {
-          await finishJobRef.current(job)
+
+        graphAbortRef.current?.abort()
+        graphAbortRef.current = null
+        setGraphPhase('idle')
+        setGraphError(null)
+        sessionEpochRef.current += 1
+        const epoch = sessionEpochRef.current
+        const signature = mutationSignature('start', {
+          question: input.question,
+          sourceUrl: input.sourceUrl,
+        })
+        const requestId = mutationIdsRef.current.forPayload(signature)
+        try {
+          const job = await liveClient.startResearch(
+            {
+              question: input.question,
+              source_url: input.sourceUrl,
+              request_id: requestId,
+            },
+            undefined,
+          )
+          if (sessionEpochRef.current !== epoch) {
+            return
+          }
+          const mismatch = jobResponseMismatch(job, {
+            kind: 'discovery',
+            requestId,
+          })
+          if (mismatch !== null) {
+            reportPurposeError(
+              'start',
+              malformedResponse(
+                `The gateway returned a job response that does not match this request: ${mismatch}`,
+              ),
+            )
+            return
+          }
+          mutationIdsRef.current.settle(signature)
+          const active: ActiveJob = {
+            purpose: 'start',
+            context: {
+              researchId: job.research_id,
+              question: input.question,
+              sourceUrl: input.sourceUrl,
+            },
+            view: jobView(job),
+            raw: job,
+          }
+          setActiveJob(active)
+          activeJobRef.current = active
+          if (isTerminalJob(job)) {
+            await finishJobRef.current(job)
+          }
+        } catch (error) {
+          if (sessionEpochRef.current !== epoch) {
+            return
+          }
+          setStartError(
+            toUiError(
+              error,
+              'Live discovery could not start. The gateway may not be wired yet.',
+            ),
+          )
         }
-      } catch (error) {
-        setStartError(
-          toUiError(
-            error,
-            'Live discovery could not start. The gateway may not be wired yet.',
-          ),
-        )
+      } finally {
+        if (gate.end(token)) {
+          setStartSubmitting(false)
+        }
       }
     },
-    [config.mode, liveClient],
+    [config.mode, liveClient, reportPurposeError],
   )
 
   const retryGraph = useCallback(() => {
@@ -558,20 +695,43 @@ export default function App() {
       void loadGraph({
         researchId: sessionRef.current.researchId,
         fixture: sessionRef.current.fixture,
+        transport: transportForSession(
+          sessionRef.current,
+          config.demoTransport,
+        ),
         question: sessionRef.current.question,
         sourceUrl: sessionRef.current.sourceUrl,
         resetWorkspace: false,
       })
     }
-  }, [loadGraph])
+  }, [config.demoTransport, loadGraph])
 
   const finishJob = useCallback(
     async (job: JobEnvelope) => {
       const active = activeJobRef.current
-      if (!active) {
+      if (!active || active.view.id !== job.job_id) {
         return
       }
       if (finishedJobsRef.current.has(job.job_id)) {
+        return
+      }
+      const epoch = sessionEpochRef.current
+      const activeJobId = active.view.id
+      const isStillCurrent = () =>
+        sessionEpochRef.current === epoch &&
+        activeJobRef.current?.view.id === activeJobId
+      const expectedResearchId =
+        sessionRef.current?.researchId ?? active.context.researchId
+      if (job.research_id !== expectedResearchId) {
+        finishedJobsRef.current.add(job.job_id)
+        if (!isStillCurrent()) {
+          return
+        }
+        setOriginNotice(
+          'The completed job belongs to a different research session, so its result was ignored. The current graph and answers were not changed.',
+        )
+        setActiveJob(null)
+        activeJobRef.current = null
         return
       }
       finishedJobsRef.current.add(job.job_id)
@@ -583,6 +743,9 @@ export default function App() {
             ? 'The question job did not complete.'
             : 'The research job did not complete.',
         )
+        if (!isStillCurrent()) {
+          return
+        }
         if (active.purpose === 'start') {
           setStartError(error)
           setGraphPhase('idle')
@@ -610,10 +773,14 @@ export default function App() {
         const nextGraph = await loadGraph({
           researchId: job.research_id,
           fixture: false,
+          transport: 'gateway',
           question,
           sourceUrl,
           resetWorkspace: false,
         })
+        if (!isStillCurrent()) {
+          return
+        }
         setActiveJob(null)
         activeJobRef.current = null
         if (!nextGraph) {
@@ -648,6 +815,9 @@ export default function App() {
           'Resumed node question'
         const recordId = `${job.job_id}-${Date.now()}`
         const rawResult = job.result
+        if (!isStillCurrent()) {
+          return
+        }
         if (!rawResult || typeof rawResult !== 'object') {
           setAnswers((previous) => [
             ...previous,
@@ -733,10 +903,17 @@ export default function App() {
       const nextGraph = await loadGraph({
         researchId: job.research_id,
         fixture: sessionRef.current?.fixture ?? false,
+        transport: transportForSession(
+          sessionRef.current,
+          config.demoTransport,
+        ),
         question: sessionRef.current?.question ?? 'Research workspace',
         sourceUrl: sessionRef.current?.sourceUrl ?? null,
         resetWorkspace: false,
       })
+      if (!isStillCurrent()) {
+        return
+      }
       if (!nextGraph) {
         const error = toUiError(
           new Error('Graph refresh failed.'),
@@ -773,7 +950,7 @@ export default function App() {
       setActiveJob(null)
       activeJobRef.current = null
     },
-    [loadGraph],
+    [config.demoTransport, loadGraph],
   )
   finishJobRef.current = finishJob
 
@@ -881,15 +1058,19 @@ export default function App() {
     const params = new URLSearchParams(window.location.search)
     const demo = params.get('demo') === '1'
     const researchId = params.get('research')
+    const urlTransport = parseDemoTransport(params.get('transport'))
     const revision = Number.parseInt(params.get('revision') ?? '', 10)
     const minRevision = Number.isInteger(revision) && revision > 0 ? revision : 1
     if (demo) {
-      void loadDemo(minRevision)
+      void loadDemo(urlTransport ?? config.demoTransport, minRevision)
     } else if (researchId) {
       const fixture = researchId === config.fixtureResearchId
       void loadGraph({
         researchId,
         fixture,
+        transport: fixture
+          ? urlTransport ?? config.demoTransport
+          : 'gateway',
         question: 'Resumed research workspace',
         sourceUrl: null,
         resetWorkspace: true,
@@ -929,9 +1110,25 @@ export default function App() {
       return
     }
     bootJobRef.current = true
+    const epoch = sessionEpochRef.current
+    const researchId = session.researchId
     client
       .getJob(jobId)
       .then((job) => {
+        if (
+          sessionEpochRef.current !== epoch ||
+          sessionRef.current?.researchId !== researchId ||
+          activeJobRef.current !== null ||
+          submissionGateRef.current.isHeld()
+        ) {
+          return
+        }
+        if (job.research_id !== researchId) {
+          setOriginNotice(
+            'The job in this link belongs to a different research session and was not resumed.',
+          )
+          return
+        }
         const active: ActiveJob = {
           purpose: purposeForKind(job.kind),
           context: { researchId: job.research_id },
@@ -945,6 +1142,14 @@ export default function App() {
         }
       })
       .catch((error: unknown) => {
+        if (
+          sessionEpochRef.current !== epoch ||
+          sessionRef.current?.researchId !== researchId ||
+          activeJobRef.current !== null ||
+          submissionGateRef.current.isHeld()
+        ) {
+          return
+        }
         const uiError = toUiError(error, 'The pending job could not be resumed.')
         if (uiError.code !== 'NOT_FOUND') {
           setStartError(uiError)
@@ -959,6 +1164,9 @@ export default function App() {
     const params = new URLSearchParams()
     if (session.fixture) {
       params.set('demo', '1')
+      if (session.transport !== null) {
+        params.set('transport', session.transport)
+      }
     } else {
       params.set('research', session.researchId)
     }
@@ -1073,15 +1281,47 @@ export default function App() {
       ) {
         return
       }
+      const gate = submissionGateRef.current
+      const token = gate.begin()
+      if (token === null) {
+        return
+      }
+      setQuestionSubmitting(true)
       setQuestionError(null)
       const nodeIds: [string, string] = [selection.a, selection.b]
+      const epoch = sessionEpochRef.current
       try {
+        const signature = mutationSignature('question', {
+          researchId: session.researchId,
+          nodeIds,
+          graphRevision: graph.graph_revision,
+          question,
+        })
+        const requestId = mutationIdsRef.current.forPayload(signature)
         const job = await client.askQuestion(session.researchId, {
           node_ids: nodeIds,
           graph_revision: graph.graph_revision,
           question,
-          request_id: newRequestId(),
+          request_id: requestId,
         })
+        if (sessionEpochRef.current !== epoch) {
+          return
+        }
+        const mismatch = jobResponseMismatch(job, {
+          kind: 'question',
+          researchId: session.researchId,
+          requestId,
+        })
+        if (mismatch !== null) {
+          reportPurposeError(
+            'question',
+            malformedResponse(
+              `The gateway returned a job response that does not match this request: ${mismatch}`,
+            ),
+          )
+          return
+        }
+        mutationIdsRef.current.settle(signature)
         const active: ActiveJob = {
           purpose: 'question',
           context: {
@@ -1099,15 +1339,22 @@ export default function App() {
           await finishJobRef.current(job)
         }
       } catch (error) {
+        if (sessionEpochRef.current !== epoch) {
+          return
+        }
         setQuestionError(
           toUiError(
             error,
             'The question could not be submitted. The question backend may not be wired yet.',
           ),
         )
+      } finally {
+        if (gate.end(token)) {
+          setQuestionSubmitting(false)
+        }
       }
     },
-    [client, graph, selection, session],
+    [client, graph, selection, session, reportPurposeError],
   )
 
   const expandNode = useCallback(
@@ -1115,13 +1362,44 @@ export default function App() {
       if (!session || !graph || activeJobRef.current) {
         return
       }
+      const gate = submissionGateRef.current
+      const token = gate.begin()
+      if (token === null) {
+        return
+      }
+      setExpandSubmitting(true)
       setExpandError(null)
+      const epoch = sessionEpochRef.current
       try {
+        const signature = mutationSignature('expand', {
+          researchId: session.researchId,
+          nodeId,
+          graphRevision: graph.graph_revision,
+        })
+        const requestId = mutationIdsRef.current.forPayload(signature)
         const job = await client.expandNode(session.researchId, {
           node_id: nodeId,
           graph_revision: graph.graph_revision,
-          request_id: newRequestId(),
+          request_id: requestId,
         })
+        if (sessionEpochRef.current !== epoch) {
+          return
+        }
+        const mismatch = jobResponseMismatch(job, {
+          kind: 'expansion',
+          researchId: session.researchId,
+          requestId,
+        })
+        if (mismatch !== null) {
+          reportPurposeError(
+            'expand',
+            malformedResponse(
+              `The gateway returned a job response that does not match this request: ${mismatch}`,
+            ),
+          )
+          return
+        }
+        mutationIdsRef.current.settle(signature)
         const active: ActiveJob = {
           purpose: 'expand',
           context: {
@@ -1138,15 +1416,22 @@ export default function App() {
           await finishJobRef.current(job)
         }
       } catch (error) {
+        if (sessionEpochRef.current !== epoch) {
+          return
+        }
         setExpandError(
           toUiError(
             error,
             'Further discovery could not start. The existing tree was kept.',
           ),
         )
+      } finally {
+        if (gate.end(token)) {
+          setExpandSubmitting(false)
+        }
       }
     },
-    [client, graph, session],
+    [client, graph, session, reportPurposeError],
   )
 
   const toggleCandidate = useCallback(
@@ -1177,24 +1462,57 @@ export default function App() {
       if (selected.length === 0) {
         return
       }
-      setAddError(null)
-      if (record.graphRevision !== graph.graph_revision) {
-        setAddError({
-          code: 'VERSION_CONFLICT',
-          message: `These additional findings were returned for graph revision ${record.graphRevision}. The current graph is revision ${graph.graph_revision}. Ask the question again before adding them.`,
-          retryable: false,
-          requestId: null,
-          details: [],
-        })
+      const gate = submissionGateRef.current
+      const token = gate.begin()
+      if (token === null) {
         return
       }
+      setAddSubmitting(true)
+      setAddError(null)
+      const candidateIds = [...selected].sort()
+      const epoch = sessionEpochRef.current
       try {
+        if (record.graphRevision !== graph.graph_revision) {
+          setAddError({
+            code: 'VERSION_CONFLICT',
+            message: `These additional findings were returned for graph revision ${record.graphRevision}. The current graph is revision ${graph.graph_revision}. Ask the question again before adding them.`,
+            retryable: false,
+            requestId: null,
+            details: [],
+          })
+          return
+        }
+        const signature = mutationSignature('add_discoveries', {
+          researchId: session.researchId,
+          answerId: record.answer.answer_id,
+          candidateIds,
+          graphRevision: graph.graph_revision,
+        })
+        const requestId = mutationIdsRef.current.forPayload(signature)
         const job = await client.addDiscoveries(session.researchId, {
           answer_id: record.answer.answer_id,
-          candidate_ids: selected,
+          candidate_ids: candidateIds,
           graph_revision: graph.graph_revision,
-          request_id: newRequestId(),
+          request_id: requestId,
         })
+        if (sessionEpochRef.current !== epoch) {
+          return
+        }
+        const mismatch = jobResponseMismatch(job, {
+          kind: 'add_discoveries',
+          researchId: session.researchId,
+          requestId,
+        })
+        if (mismatch !== null) {
+          reportPurposeError(
+            'add_discoveries',
+            malformedResponse(
+              `The gateway returned a job response that does not match this request: ${mismatch}`,
+            ),
+          )
+          return
+        }
+        mutationIdsRef.current.settle(signature)
         const active: ActiveJob = {
           purpose: 'add_discoveries',
           context: {
@@ -1202,7 +1520,7 @@ export default function App() {
             previousRoot: graph.root_node_id,
             previousRevision: graph.graph_revision,
             answerId: record.answer.answer_id,
-            candidateIds: selected,
+            candidateIds,
           },
           view: jobView(job),
           raw: job,
@@ -1213,15 +1531,22 @@ export default function App() {
           await finishJobRef.current(job)
         }
       } catch (error) {
+        if (sessionEpochRef.current !== epoch) {
+          return
+        }
         setAddError(
           toUiError(
             error,
             'The additional findings could not be added. The tree was not changed.',
           ),
         )
+      } finally {
+        if (gate.end(token)) {
+          setAddSubmitting(false)
+        }
       }
     },
-    [candidateSelections, client, graph, session],
+    [candidateSelections, client, graph, session, reportPurposeError],
   )
 
   const cancelActiveJob = useCallback(async () => {
@@ -1229,10 +1554,35 @@ export default function App() {
     if (!active) {
       return
     }
+    const jobId = active.view.id
+    const epoch = sessionEpochRef.current
+    const purpose = active.purpose
     try {
-      const job = await client.cancelJob(active.view.id)
+      const job = await client.cancelJob(jobId)
+      if (
+        sessionEpochRef.current !== epoch ||
+        activeJobRef.current?.view.id !== jobId
+      ) {
+        return
+      }
+      const expectedResearchId =
+        sessionRef.current?.researchId ?? active.context.researchId
+      const mismatch = jobResponseMismatch(job, {
+        kind: active.view.kind,
+        jobId,
+        researchId: expectedResearchId,
+      })
+      if (mismatch !== null) {
+        reportPurposeError(
+          purpose,
+          malformedResponse(
+            `The gateway returned a job response that does not match this request: ${mismatch}`,
+          ),
+        )
+        return
+      }
       setActiveJob((previous) =>
-        previous
+        previous && previous.view.id === jobId
           ? { ...previous, raw: job, view: jobView(job) }
           : previous,
       )
@@ -1240,12 +1590,27 @@ export default function App() {
         await finishJobRef.current(job)
       }
     } catch (error) {
-      const uiError = toUiError(error, 'Cancellation could not be requested.')
-      setQuestionError(uiError)
+      if (
+        sessionEpochRef.current !== epoch ||
+        activeJobRef.current?.view.id !== jobId
+      ) {
+        return
+      }
+      reportPurposeError(
+        purpose,
+        toUiError(error, 'Cancellation could not be requested.'),
+      )
     }
-  }, [client])
+  }, [client, reportPurposeError])
 
   const newResearch = useCallback(() => {
+    sessionEpochRef.current += 1
+    submissionGateRef.current.reset()
+    mutationIdsRef.current.clear()
+    setStartSubmitting(false)
+    setQuestionSubmitting(false)
+    setExpandSubmitting(false)
+    setAddSubmitting(false)
     const active = activeJobRef.current
     if (active && !isTerminalJob(active.raw)) {
       void client.cancelJob(active.view.id).catch(() => {
@@ -1307,6 +1672,16 @@ export default function App() {
   const headerSourceUrl =
     session?.sourceUrl ?? activeJob?.context.sourceUrl ?? null
   const fixtureSession = session?.fixture ?? config.mode === 'fixture'
+  // The configured demo transport is only a pre-session fallback. An explicit
+  // live session must never inherit a synthetic transport tooltip just because
+  // the app is configured in fixture mode.
+  const fixtureTransport: DemoTransport | null = session
+    ? session.fixture
+      ? session.transport
+      : null
+    : config.mode === 'fixture'
+      ? config.demoTransport
+      : null
   const showStart =
     !graph && !activeJob && graphPhase !== 'error'
   const showWorkspace = graph !== null && session !== null
@@ -1361,9 +1736,11 @@ export default function App() {
           <span
             className={`service ${graph ? 'connected' : ''}`}
             title={
-              fixtureSession
-                ? 'Synthetic fixture adapter is active'
-                : 'Live gateway mode'
+              fixtureTransport === 'gateway'
+                ? 'Synthetic fixture served read-only by the configured gateway.'
+                : fixtureTransport === 'bundled'
+                  ? 'Bundled synthetic fixture adapter is active.'
+                  : 'Live gateway mode'
             }
           >
             <span />{' '}
@@ -1398,7 +1775,8 @@ export default function App() {
               </p>
               <ResearchForm
                 mode={config.mode}
-                busy={false}
+                demoTransport={config.demoTransport}
+                busy={startSubmitting}
                 error={startError}
                 notice={formNotice}
                 onSubmit={submitLive}
@@ -1434,6 +1812,8 @@ export default function App() {
               seedNode={null}
               rootNode={null}
               fixture={fixtureSession}
+              transport={null}
+              demoNotice={null}
               originNotice={null}
               onNewResearch={newResearch}
             />
@@ -1491,6 +1871,12 @@ export default function App() {
               seedNode={seedNode}
               rootNode={rootNode}
               fixture={session.fixture}
+              transport={session.transport}
+              demoNotice={
+                session.fixture && session.transport === 'gateway'
+                  ? GATEWAY_DEMO_NOTICE
+                  : null
+              }
               originNotice={originNotice}
               onNewResearch={newResearch}
             />
@@ -1646,7 +2032,7 @@ export default function App() {
                       }
                       crossLinkIds={new Set(graph.cross_link_ids ?? [])}
                       onExpand={expandNode}
-                      expanding={busyExpand}
+                      expanding={busyExpand || expandSubmitting}
                       expandError={expandError}
                     />
 
@@ -1664,7 +2050,7 @@ export default function App() {
                       a={aNode}
                       b={bNode}
                       graphRevision={graph.graph_revision}
-                      busy={busyQuestion}
+                      busy={busyQuestion || questionSubmitting}
                       error={questionError}
                       onAsk={askQuestion}
                       retainedAnswerNotice={
@@ -1714,7 +2100,7 @@ export default function App() {
                         onAddDiscoveries={() => {
                           void addDiscoveries(latestAnswer)
                         }}
-                        adding={busyAdd}
+                        adding={busyAdd || addSubmitting}
                         addError={addError}
                         currentGraphRevision={graph.graph_revision}
                         validationError={latestAnswer.validationErrors}
@@ -1763,7 +2149,7 @@ export default function App() {
                               onAddDiscoveries={() => {
                                 void addDiscoveries(record)
                               }}
-                              adding={busyAdd}
+                              adding={busyAdd || addSubmitting}
                               addError={addError}
                               currentGraphRevision={graph.graph_revision}
                               validationError={record.validationErrors}
@@ -1811,8 +2197,8 @@ export default function App() {
 
       {graphPhase === 'loading' && !graph ? (
         <div className="loading-veil" role="status" aria-live="polite">
-          <LoaderCircle className="spin" size={18} /> Loading the synthetic
-          fixture graph…
+          <LoaderCircle className="spin" size={18} /> Loading the research
+          graph…
         </div>
       ) : null}
 

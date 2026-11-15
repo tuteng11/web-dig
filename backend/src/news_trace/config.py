@@ -56,7 +56,10 @@ class Settings:
             f"127.0.0.1:{gateway_port},localhost:{gateway_port},"
             f"127.0.0.1:{mcp_port},localhost:{mcp_port}"
         )
-        default_origins = "http://127.0.0.1:5173,http://localhost:5173"
+        default_origins = (
+            "http://127.0.0.1:5173,http://localhost:5173,"
+            "http://127.0.0.1:4173,http://localhost:4173"
+        )
         fixture_path = Path(
             os.environ.get(
                 "NEWS_TRACE_FIXTURE_PATH",

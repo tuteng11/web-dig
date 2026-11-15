@@ -39,6 +39,13 @@ export interface NewsTraceClient {
     input: StartResearchInput,
     signal?: AbortSignal,
   ): Promise<JobEnvelope>;
+  /**
+   * Fetch a job, optionally with events appended after an exclusive cursor.
+   *
+   * `afterEventSeq` is exclusive: the server returns events with
+   * `seq > afterEventSeq`. Pass the highest sequence actually received, not
+   * `JobEnvelope.next_event_seq` (which is the next sequence to allocate).
+   */
   getJob(
     jobId: string,
     afterEventSeq?: number,

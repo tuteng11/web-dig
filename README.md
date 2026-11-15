@@ -96,7 +96,8 @@ SDK version, schema pipeline, chronology decisions, and security posture.
 
 | Path | Purpose |
 |---|---|
-| `apps/web/` | React/TypeScript/Vite frontend |
+| `frontend/` | New Traceback React/TypeScript/Vite contract UI; gateway demo is the default read path |
+| `apps/web/` | Legacy Cytoscape contract UI retained for comparison |
 | `backend/src/news_trace/` | Shared models, projection, fixture repository, MCP server/client, FastAPI gateway |
 | `backend/tests/` | Model/projection tests plus real MCP and gateway integration tests |
 | `contracts/generated/` | Generated JSON Schema and frontend types |
@@ -137,13 +138,19 @@ No paid provider credentials are required. Fixture mode is local and explicit.
    cd ..
    ```
 
-   This creates `backend/.venv` from `backend/uv.lock`. The frontend lockfile is
-   `apps/web/package-lock.json`.
+   This creates `backend/.venv` from `backend/uv.lock`. The frontend lockfiles are
+   `frontend/package-lock.json` and `apps/web/package-lock.json`.
 
 3. Start the MCP server and gateway in one terminal:
 
    ```powershell
    uv run --project backend python scripts/run_fixture.py
+   ```
+
+   If `uv` is not on `PATH`, use the existing virtual environment directly:
+
+   ```powershell
+   backend\.venv\Scripts\python.exe scripts\run_fixture.py
    ```
 
    Expected local endpoints:
@@ -160,27 +167,35 @@ No paid provider credentials are required. Fixture mode is local and explicit.
 
    POSIX: `curl http://127.0.0.1:8000/health`
 
-4. In a second terminal, install frontend dependencies and start Vite:
+4. In a second terminal, install the new frontend dependencies and start Vite:
 
    ```powershell
-   npm --prefix apps/web install
-   npm --prefix apps/web run dev
+   npm --prefix frontend install
+   npm --prefix frontend run dev
    ```
 
    Open `http://127.0.0.1:5173`. Vite proxies `/api` and `/health` to the gateway, so the browser uses same-origin
-   requests. A persistent **Synthetic demo** badge identifies the fixture data.
+   requests. The default **Load synthetic Riverbend demo** loads graph and node details through the gateway/MCP read
+   path. Use `http://127.0.0.1:5173/?demo=1&transport=bundled` for the fully offline interactive demo. A persistent
+   **Synthetic demo** label identifies fixture data in both modes.
+
+   The legacy UI remains available with `npm --prefix apps/web install` and `npm --prefix apps/web run dev`.
 
 ### Fixture entry point
 
-The frontend loads the documented fixture research id `fixture-riverbend` from:
+The new frontend loads the documented fixture research id `fixture-riverbend` from:
 
 - `GET /api/v1/research/fixture-riverbend/graph`
 - `GET /api/v1/research/fixture-riverbend/nodes/{node_id}`
 
-There is no live research form in this milestone. If `VITE_FIXTURE_MODE` is not `true`, the UI shows an explicit
-“live research is not implemented” state rather than substituting fixture data. The fixture repository also exposes
-an expanded projection stage to tests; it demonstrates the April agenda arriving later and rerooting the graph
-without changing node IDs. That expansion is not a user-triggered job yet.
+Those read routes cross the real gateway → MCP → `FixtureRepository` path. The demo is read-only in gateway mode:
+discovery, job, expansion, question, and additional-discovery routes return explicit typed `503`/`404` responses
+instead of fabricated results. The bundled offline demo (`?demo=1&transport=bundled`) keeps the complete local
+synthetic interaction flow.
+
+The fixture repository also exposes an expanded projection stage to tests; it demonstrates the April agenda arriving
+later and rerooting the graph without changing node IDs. The bundled demo simulates that expansion client-side; it is
+not a backend job yet.
 
 ## Checks
 
@@ -197,7 +212,13 @@ uv run --project backend python scripts/generate_contracts.py --check
 npm --prefix apps/web run generate:types
 git diff --exit-code -- apps/web/src/generated/newsTraceContracts.ts
 
-# Frontend behavior tests, typecheck, and production build
+# New Traceback UI behavior tests, DTO sync, typecheck, and production build
+npm --prefix frontend run check:contracts
+npm --prefix frontend test
+npm --prefix frontend run typecheck
+npm --prefix frontend run build
+
+# Legacy UI behavior tests, typecheck, and production build
 npm --prefix apps/web test
 npm --prefix apps/web run typecheck
 npm --prefix apps/web run build
@@ -209,15 +230,21 @@ Or run the convenience runner:
 uv run --project backend python scripts/check.py
 ```
 
-The runner covers schema/type freshness, backend tests, frontend tests, typecheck, and the production build. It does
-not start servers. For the real-browser fixture check, start the backend and Vite dev server as described above,
-then run:
+The runner covers schema/type freshness, backend tests, both frontend test suites, typecheck, and production builds.
+It does not start servers. For the real-browser checks, start the backend, build the new frontend, and serve its
+production preview on port 4173:
 
 ```powershell
-npm --prefix apps/web run smoke:browser
+npm --prefix frontend run build
+npm --prefix frontend run preview -- --host 127.0.0.1 --port 4173
+# in a second terminal:
+npm --prefix frontend run smoke:browser
+npm --prefix frontend run smoke:browser:gateway
 ```
 
-The browser check uses the installed Microsoft Edge through `playwright-core`; it does not download a browser.
+The first smoke uses the bundled offline demo and asserts no backend requests. The gateway smoke asserts graph and
+node-detail reads reach `/api/v1/research/...`. Both use the installed Microsoft Edge through `playwright-core`; they
+do not download a browser.
 
 The exact results for this commit are recorded in
 [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md#verification-log).

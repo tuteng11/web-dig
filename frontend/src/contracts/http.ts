@@ -101,6 +101,14 @@ export interface JobEnvelope<T = unknown> {
   result: T | null;
   error: JobError | null;
   events: JobEvent[];
+  /**
+   * Sequence number the server will assign to the next event
+   * (highest existing seq + 1).
+   *
+   * This is not a valid `after_event_seq` cursor: that parameter is exclusive
+   * (`seq > cursor`), so clients must send the highest sequence actually
+   * received. See `NewsTraceClient.getJob`.
+   */
   next_event_seq: number;
 }
 

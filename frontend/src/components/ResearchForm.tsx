@@ -1,5 +1,5 @@
 import { useId, useRef, useState, type FormEvent } from 'react'
-import type { AppMode } from '../config'
+import type { AppMode, DemoTransport } from '../config'
 import type { UiError } from '../domain/errors'
 
 const QUESTION_LIMIT = 2000
@@ -52,6 +52,7 @@ function validateSourceUrl(value: string): string | null {
 
 interface ResearchFormProps {
   mode: AppMode
+  demoTransport: DemoTransport
   busy: boolean
   error: UiError | null
   notice?: string | null
@@ -62,6 +63,7 @@ interface ResearchFormProps {
 
 export function ResearchForm({
   mode,
+  demoTransport,
   busy,
   error,
   notice = null,
@@ -140,19 +142,29 @@ export function ResearchForm({
       <div className="demo-callout">
         <div className="tb-demo-copy">
           <div className="node-badges">
-            <span className="badge badge-provisional">Synthetic demo</span>
+            <span className="badge badge-provisional">
+              {demoTransport === 'gateway'
+                ? 'Synthetic demo · gateway'
+                : 'Synthetic demo · bundled'}
+            </span>
             <span className="badge badge-neutral">
               {mode === 'fixture' ? 'Fixture mode' : 'Live mode'}
             </span>
           </div>
           <p>
             {mode === 'fixture'
-              ? 'This workspace is running against a bundled synthetic scenario, not live research. The demo below loads the Riverbend battery-storage fixture through the fixture adapter.'
-              : 'This workspace is in live mode. The demo below is still an explicit synthetic scenario and never substitutes for live results.'}
+              ? demoTransport === 'gateway'
+                ? 'This workspace is running against the synthetic Riverbend fixture served read-only by the configured backend gateway through MCP. Demo graph and node details require the gateway; expansion, questions, and additional-discovery jobs are not implemented in this milestone.'
+                : 'This workspace is running against a fully offline bundled synthetic scenario, not live research. The demo below loads the Riverbend battery-storage fixture directly from the local bundle; no backend request is made and the full demo interaction is simulated in the browser.'
+              : demoTransport === 'gateway'
+                ? 'Live-discovery mode is selected, but the demo below is still an explicit synthetic scenario, served read-only by the configured gateway through MCP. It never substitutes for live results, and demo jobs are not implemented in this milestone.'
+                : 'Live-discovery mode is selected, but the demo below is still an explicit, fully offline synthetic scenario from the bundled adapter. It never substitutes for live results.'}
           </p>
           <p className="field-note">
-            The demo is independent of the question and URL above. It does not
-            fetch the submitted page or run live discovery.
+            The demo is independent of the question and URL above.{' '}
+            {demoTransport === 'gateway'
+              ? 'It reads only the backend fixture graph and node details; it does not fetch the submitted page or run live discovery.'
+              : 'It makes no backend request, does not fetch the submitted page, and does not run live discovery.'}
           </p>
         </div>
         <button
